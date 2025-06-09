@@ -15,7 +15,7 @@ def pythonTetris():
     try:
         pygame.mixer.init()
         pygame.mixer.music.load('Original_Tetris_theme.mp3')
-        pygame.mixer.music.set_volume(0.5)  # Opcional: volumen entre 0.0 y 1.0
+        pygame.mixer.music.set_volume(0)  #Volume between 0.0 and 1.0
         pygame.mixer.music.play(-1)  # -1 para loop infinito
     except Exception as e:
         print(f"Error al cargar música: {e}")
@@ -23,6 +23,7 @@ def pythonTetris():
     clock = pygame.time.Clock()
     running = True
 
+    pygame.key.set_repeat(200, 100) 
     while running:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -36,7 +37,7 @@ def pythonTetris():
                     game.move_down()
                 elif event.key == pygame.K_UP:
                     game.rotate()
-
+            
         game.update()
         game.draw()
         pygame.display.flip()

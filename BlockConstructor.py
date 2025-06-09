@@ -1,14 +1,92 @@
-class BlockConstructor:
-    def __init__(self, block_type, block_id, block_data):
-        self.block_type = block_type
-        self.block_id = block_id
-        self.block_data = block_data
+import random
+from Piece import Piece
+TETROMINOS = {
+    "S": [['.....',
+           '.....',
+           '..00.',
+           '.00..',
+           '.....'],
+          ['.....',
+           '..0..',
+           '..00.',
+           '...0.',
+           '.....']],
+    "Z": [['.....',
+           '.....',
+           '.00..',
+           '..00.',
+           '.....'],
+          ['.....',
+           '..0..',
+           '.00..',
+           '.0...',
+           '.....']],
+    "I": [['..0..',
+           '..0..',
+           '..0..',
+           '..0..',
+           '.....'],
+          ['.....',
+           '0000.',
+           '.....',
+           '.....',
+           '.....']],
+    "O": [['.....',
+           '.....',
+           '.00..',
+           '.00..',
+           '.....']],
+    "J": [['.....',
+           '.0...',
+           '.000.',
+           '.....',
+           '.....'],
+          ['.....',
+           '..00.',
+           '..0..',
+           '..0..',
+           '.....']],
+    "L": [['.....',
+           '...0.',
+           '.000.',
+           '.....',
+           '.....'],
+          ['.....',
+           '..0..',
+           '..0..',
+           '..00.',
+           '.....']],
+    "T": [['.....',
+           '..0..',
+           '.000.',
+           '.....',
+           '.....'],
+          ['.....',
+           '..0..',
+           '..00.',
+           '..0..',
+           '.....']],
+}
 
-    def construct(self):
-        # Here you would implement the logic to construct the block
-        # For example, creating a new block instance in a game or simulation
-        return {
-            "type": self.block_type,
-            "id": self.block_id,
-            "data": self.block_data
-        }
+TETROMINO_COLORS = {
+    "S": (0, 255, 0),
+    "Z": (255, 0, 0),
+    "I": (0, 255, 255),
+    "O": (255, 255, 0),
+    "J": (0, 0, 255),
+    "L": (255, 165, 0),
+    "T": (128, 0, 128),
+}
+class BlockConstructor:
+    def __init__(self):
+        self.tetrominos = TETROMINOS
+
+    def getRandomBlock(self):
+        block_type = random.choice(list(self.tetrominos.keys()))
+        rotations = self.tetrominos[block_type]
+        color = (
+            random.randint(50, 255),
+            random.randint(50, 255),
+            random.randint(50, 255)
+        )
+        return Piece(block_type, rotations, color)
