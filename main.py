@@ -37,11 +37,12 @@ def pythonTetris():
                     game.move_down()
                 elif event.key == pygame.K_UP:
                     game.rotate()
-            
         game.update()
         game.draw()
         pygame.display.flip()
-
+        if game.game_over():
+            print("Game Over")
+            running = False
         clock.tick(10)  # Controla FPS, aquí 10 cuadros por segundo
 
     pygame.quit()
