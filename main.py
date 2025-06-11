@@ -15,7 +15,7 @@ def pythonTetris():
     try:
         pygame.mixer.init()
         pygame.mixer.music.load('Original_Tetris_theme.mp3')
-        pygame.mixer.music.set_volume(0)  #Volume between 0.0 and 1.0
+        pygame.mixer.music.set_volume(0.5)  #Volume between 0.0 and 1.0
         pygame.mixer.music.play(-1)  # -1 para loop infinito
     except Exception as e:
         print(f"Error al cargar música: {e}")

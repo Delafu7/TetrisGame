@@ -23,10 +23,26 @@ class TetrisGame:
     def draw(self):
         self.screen.fill((0, 0, 0))
 
-        for x in range(11):  # 10 columnas + 1 línea extra al final
+        # Dibujar la cuadrícula
+        for x in range(11):
             pygame.draw.line(self.screen, (50, 50, 50), (x * 30, 0), (x * 30, 20 * 30))
-        for y in range(21):  # 20 filas + 1 línea extra al final
+        for y in range(21):
             pygame.draw.line(self.screen, (50, 50, 50), (0, y * 30), (10 * 30, y * 30))
+
+        # Dibujar la posición fantasma
+        ghost_piece = self.current_piece.copy()
+        while self.valid_move(ghost_piece.get_current_shape(), ghost_piece.x, ghost_piece.y + 1):
+            ghost_piece.y += 1
+
+
+        ghost_shape = ghost_piece.get_current_shape()
+        for i, row in enumerate(ghost_shape):
+            for j, cell in enumerate(row):
+                if cell == '0':
+                    x = (ghost_piece.x + j) * 30
+                    y = (ghost_piece.y + i) * 30
+                    pygame.draw.rect(self.screen, ghost_piece.color, (x, y, 30, 30), 1)  # solo borde
+
         # Dibujar el tablero (piezas ya fijas)
         for y in range(20):
             for x in range(10):
@@ -44,6 +60,9 @@ class TetrisGame:
                     y = (self.current_piece.y + i) * 30
                     pygame.draw.rect(self.screen, self.current_piece.color, (x, y, 30, 30))
                     pygame.draw.rect(self.screen, (0, 0, 0), (x, y, 30, 30), 2)
+
+        
+            
         
     def valid_move(self, shape, x, y):
         for i, row in enumerate(shape):
@@ -101,6 +120,7 @@ class TetrisGame:
             self.current_piece.rotate()
             self.current_piece.rotate()
             self.current_piece.rotate()
+       
     def game_over(self):
         return any(self.board[1][x] != (0, 0, 0) for x in range(10))
 
