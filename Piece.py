@@ -6,9 +6,16 @@ class Piece:
         self.rotations = rotations
         self.rotation = 0
         self.color = color
-        self.x = 4
-        self.y = 0
+        self.x = 3
+        self.y = -self.get_top_offset()
 
+    def get_top_offset(self):
+        shape = self.get_current_shape()
+        for i, row in enumerate(shape):
+            if '0' in row:
+                return i
+        return 0
+    
     def get_current_shape(self):
         return self.rotations[self.rotation % len(self.rotations)]
 

@@ -10,6 +10,16 @@ class TetrisGame:
         self.spawn_piece()
         self.fall_time = 0
         self.fall_speed = 1000
+        self.cell_size = 30
+        self.cols = 10
+        self.rows = 20
+
+        self.board_width = self.cols * self.cell_size
+        self.board_height = self.rows * self.cell_size
+
+        screen_width, screen_height = self.screen.get_size()
+        self.offset_x = (screen_width - self.board_width) // 2
+        self.offset_y = (screen_height - self.board_height) // 2
 
     def spawn_piece(self):
         self.current_piece = self.block_constructor.getRandomBlock()
@@ -24,11 +34,19 @@ class TetrisGame:
         self.screen.fill((0, 0, 0))
 
         # Dibujar la cuadrícula
-        for x in range(11):
-            pygame.draw.line(self.screen, (50, 50, 50), (x * 30, 0), (x * 30, 20 * 30))
-        for y in range(21):
-            pygame.draw.line(self.screen, (50, 50, 50), (0, y * 30), (10 * 30, y * 30))
+        for x in range(self.cols + 1):
+            pygame.draw.line(
+                self.screen, (50, 50, 50),
+                (self.offset_x + x * self.cell_size, self.offset_y),
+                (self.offset_x + x * self.cell_size, self.offset_y + self.board_height)
+            )
 
+        for y in range(self.rows + 1):
+            pygame.draw.line(
+                self.screen, (50, 50, 50),
+                (self.offset_x, self.offset_y + y * self.cell_size),
+                (self.offset_x + self.board_width, self.offset_y + y * self.cell_size)
+            )
         # Dibujar la posición fantasma
         ghost_piece = self.current_piece.copy()
         while self.valid_move(ghost_piece.get_current_shape(), ghost_piece.x, ghost_piece.y + 1):
@@ -39,29 +57,29 @@ class TetrisGame:
         for i, row in enumerate(ghost_shape):
             for j, cell in enumerate(row):
                 if cell == '0':
-                    x = (ghost_piece.x + j) * 30
-                    y = (ghost_piece.y + i) * 30
-                    pygame.draw.rect(self.screen, ghost_piece.color, (x, y, 30, 30), 1)  # solo borde
-
+                    x, y = self.to_screen_coords(ghost_piece.x + j, ghost_piece.y + i)
+                    pygame.draw.rect(self.screen, ghost_piece.color, (x, y, self.cell_size, self.cell_size), 1)
         # Dibujar el tablero (piezas ya fijas)
-        for y in range(20):
+        for y in range(20): 
             for x in range(10):
                 color = self.board[y][x]
                 if color != (0, 0, 0):
-                    pygame.draw.rect(self.screen, color, (x * 30, y * 30, 30, 30))
-                    pygame.draw.rect(self.screen, (255, 255, 255), (x * 30, y * 30, 30, 30), 2)
+                    screen_x, screen_y = self.to_screen_coords(x, y)
+                    pygame.draw.rect(self.screen, color, (screen_x, screen_y, self.cell_size, self.cell_size))
+                    pygame.draw.rect(self.screen, (255, 255, 255), (screen_x, screen_y, self.cell_size, self.cell_size), 2)
 
         # Dibujar la pieza actual
         shape = self.current_piece.get_current_shape()
         for i, row in enumerate(shape):
             for j, cell in enumerate(row):
                 if cell == '0':
-                    x = (self.current_piece.x + j) * 30
-                    y = (self.current_piece.y + i) * 30
+                    x, y = self.to_screen_coords(self.current_piece.x + j, self.current_piece.y + i)
                     pygame.draw.rect(self.screen, self.current_piece.color, (x, y, 30, 30))
                     pygame.draw.rect(self.screen, (0, 0, 0), (x, y, 30, 30), 2)
 
-        
+    def to_screen_coords(self, x, y):
+        return self.offset_x + x * self.cell_size, self.offset_y + y * self.cell_size
+    
             
         
     def valid_move(self, shape, x, y):
