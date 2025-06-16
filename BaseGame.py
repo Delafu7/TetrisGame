@@ -2,14 +2,13 @@ from BlockConstructor import BlockConstructor
 import pygame
 
 class TetrisGame:
-    def __init__(self, screen):
+    def __init__(self, screen, mode=0):
         self.screen = screen
         self.board = [[(0, 0, 0)] * 10 for _ in range(20)]  # tablero de 20x10
         self.block_constructor = BlockConstructor()
         self.current_piece = None
         self.spawn_piece()
         self.fall_time = 0
-        self.fall_speed = 1000
         self.cell_size = 30
         self.cols = 10
         self.rows = 20
@@ -20,7 +19,20 @@ class TetrisGame:
         screen_width, screen_height = self.screen.get_size()
         self.offset_x = (screen_width - self.board_width) // 2
         self.offset_y = (screen_height - self.board_height) // 2
-
+        if mode == 1:
+            self.fall_speed = 500
+        else:
+            self.fall_speed = 1000
+        if mode == 2:
+            self.add_initial_obstacles()
+    
+    def add_initial_obstacles(self):
+        import random
+        for _ in range(5):
+            x = random.randint(0, 9)
+            y = random.randint(15, 19)
+            self.board[y][x] = (100, 100, 100)  # Color gris para los obstáculos
+            
     def spawn_piece(self):
         self.current_piece = self.block_constructor.getRandomBlock()
 
