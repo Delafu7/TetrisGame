@@ -12,6 +12,7 @@ class TetrisGame:
         self.cell_size = 30
         self.cols = 10
         self.rows = 20
+        self.score=0
 
         self.board_width = self.cols * self.cell_size
         self.board_height = self.rows * self.cell_size
@@ -88,7 +89,9 @@ class TetrisGame:
                     x, y = self.to_screen_coords(self.current_piece.x + j, self.current_piece.y + i)
                     pygame.draw.rect(self.screen, self.current_piece.color, (x, y, 30, 30))
                     pygame.draw.rect(self.screen, (0, 0, 0), (x, y, 30, 30), 2)
-
+        font = pygame.font.Font("other/PressStart2P.ttf", 20)
+        score_text = font.render(f"PUNTOS: {self.score}", True, (255, 255, 255))
+        self.screen.blit(score_text, (self.offset_x, self.offset_y - 40))
     def to_screen_coords(self, x, y):
         return self.offset_x + x * self.cell_size, self.offset_y + y * self.cell_size
     
@@ -124,6 +127,7 @@ class TetrisGame:
         for y in rows_to_delete:
             del self.board[y]
             self.board.insert(0, [(0, 0, 0)] * 10)
+        return len(rows_to_delete)
     def move_down(self):
         shape = self.current_piece.get_current_shape()
         if self.valid_move(shape, self.current_piece.x, self.current_piece.y + 1):
@@ -137,7 +141,15 @@ class TetrisGame:
                         y = self.current_piece.y + i
                         if 0 <= x < 10 and 0 <= y < 20:
                             self.board[y][x] = self.current_piece.color
-            self.deleteColumns()
+            line_points=self.deleteColumns()
+            if line_points == 1:
+                self.score += 40
+            elif line_points == 2:
+                self.score += 100
+            elif line_points == 3:
+                self.score += 300
+            elif line_points == 4:
+                self.score += 1200
             self.spawn_piece()
 
     def rotate(self):
