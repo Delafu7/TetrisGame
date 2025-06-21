@@ -222,8 +222,6 @@ def run_game(screen,mode=0):
                     game.move_left()
                 elif event.key == pygame.K_RIGHT:
                     game.move_right()
-                elif event.key == pygame.K_DOWN:
-                    game.move_down()
                 elif event.key == pygame.K_UP and rotation_allowed:
                     game.rotate()
                     rotation_allowed = False  # bloquea rotaciones adicionales
@@ -233,6 +231,7 @@ def run_game(screen,mode=0):
                 
 
         game.update()
+        game.handle_down_key_hold()
         game.draw()
 
         pygame.display.flip()

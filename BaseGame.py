@@ -8,6 +8,10 @@ class TetrisGame:
         self.block_constructor = BlockConstructor()
         self.current_piece = None
         self.spawn_piece()
+        self.down_key_held = False
+        self.down_key_start_time = 0
+        self.down_key_last_scored = 0
+        self.down_score_interval = 50  # Cada 50 ms sumamos 1 punto
         self.fall_time = 0
         self.cell_size = 30
         self.cols = 10
@@ -27,6 +31,25 @@ class TetrisGame:
         if mode == 2:
             self.add_initial_obstacles()
     
+    def handle_down_key_hold(self):
+        keys = pygame.key.get_pressed()
+        if keys[pygame.K_DOWN]:
+            now = pygame.time.get_ticks()
+            if not self.down_key_held:
+                self.down_key_held = True
+                self.down_key_start_time = now
+                self.down_key_last_scored = now
+            else:
+                # Agrega puntos por cada intervalo completado
+                while now - self.down_key_last_scored >= self.down_score_interval:
+                    self.score += 1
+                    self.down_key_last_scored += self.down_score_interval
+
+                # Hace que la pieza baje constantemente
+                self.move_down()
+        else:
+            self.down_key_held = False
+
     def add_initial_obstacles(self):
         import random
         for _ in range(5):
