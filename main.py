@@ -217,6 +217,7 @@ def run_game(screen,mode=0):
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
+                pygame.mixer.music.stop()
             elif event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_LEFT:
                     game.move_left()
@@ -241,6 +242,7 @@ def run_game(screen,mode=0):
             print("Game Over")
             save_score(name, game.score)
             running = False
+            pygame.mixer.music.stop()
         clock.tick(10)
 
     

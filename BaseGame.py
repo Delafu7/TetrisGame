@@ -24,13 +24,23 @@ class TetrisGame:
         screen_width, screen_height = self.screen.get_size()
         self.offset_x = (screen_width - self.board_width) // 2
         self.offset_y = (screen_height - self.board_height) // 2
+        
+        self.celebration_frames = [
+            pygame.image.load(f"imagens/russianDancer/frame_{i}.gif").convert_alpha() for i in range(29)  # Cargar 29 frames de la animación
+        ]
+        self.celebration_index = 0
+        self.show_celebration = False
+        self.celebration_timer = 0
+        self.celebration_duration = 1000  # duración en milisegundos
+    
         if mode == 1:
             self.fall_speed = 500
         else:
             self.fall_speed = 1000
         if mode == 2:
             self.add_initial_obstacles()
-    
+        
+        
     def handle_down_key_hold(self):
         keys = pygame.key.get_pressed()
         if keys[pygame.K_DOWN]:
@@ -67,7 +77,19 @@ class TetrisGame:
             self.fall_time = current_time
 
     def draw(self):
-        self.screen.fill((0, 0, 0))
+        self.screen.fill((20, 20, 40))  # Color de fondo general
+
+        # Dibujar el área del tablero como un bloque negro
+        pygame.draw.rect(
+            self.screen,
+            (0, 0, 0),  # tablero negro
+            (
+                self.offset_x,
+                self.offset_y,
+                self.board_width,
+                self.board_height
+            )
+        )
 
         # Dibujar la cuadrícula
         for x in range(self.cols + 1):
@@ -83,11 +105,11 @@ class TetrisGame:
                 (self.offset_x, self.offset_y + y * self.cell_size),
                 (self.offset_x + self.board_width, self.offset_y + y * self.cell_size)
             )
-        # Dibujar la posición fantasma
+
+        # Posición fantasma
         ghost_piece = self.current_piece.copy()
         while self.valid_move(ghost_piece.get_current_shape(), ghost_piece.x, ghost_piece.y + 1):
             ghost_piece.y += 1
-
 
         ghost_shape = ghost_piece.get_current_shape()
         for i, row in enumerate(ghost_shape):
@@ -95,8 +117,9 @@ class TetrisGame:
                 if cell == '0':
                     x, y = self.to_screen_coords(ghost_piece.x + j, ghost_piece.y + i)
                     pygame.draw.rect(self.screen, ghost_piece.color, (x, y, self.cell_size, self.cell_size), 1)
-        # Dibujar el tablero (piezas ya fijas)
-        for y in range(20): 
+
+        # Piezas fijas en el tablero
+        for y in range(20):
             for x in range(10):
                 color = self.board[y][x]
                 if color != (0, 0, 0):
@@ -104,7 +127,7 @@ class TetrisGame:
                     pygame.draw.rect(self.screen, color, (screen_x, screen_y, self.cell_size, self.cell_size))
                     pygame.draw.rect(self.screen, (255, 255, 255), (screen_x, screen_y, self.cell_size, self.cell_size), 2)
 
-        # Dibujar la pieza actual
+        # Pieza actual
         shape = self.current_piece.get_current_shape()
         for i, row in enumerate(shape):
             for j, cell in enumerate(row):
@@ -112,9 +135,36 @@ class TetrisGame:
                     x, y = self.to_screen_coords(self.current_piece.x + j, self.current_piece.y + i)
                     pygame.draw.rect(self.screen, self.current_piece.color, (x, y, 30, 30))
                     pygame.draw.rect(self.screen, (0, 0, 0), (x, y, 30, 30), 2)
+
+        # Puntuación
         font = pygame.font.Font("other/PressStart2P.ttf", 20)
         score_text = font.render(f"PUNTOS: {self.score}", True, (255, 255, 255))
         self.screen.blit(score_text, (self.offset_x, self.offset_y - 40))
+
+                # Mostrar animación de celebración si está activa
+        frame_rect = pygame.Rect(20, 20, 60, 60)  # Posición y tamaño del recuadro (ajústalo a tu gusto)
+        current_time = pygame.time.get_ticks()
+        if self.show_celebration:
+            # Duración total basada en ciclos
+            frame_duration = 150  # tiempo por frame en ms
+            total_frames = len(self.celebration_frames) * 2  # repetir 2 veces
+            # Calcular qué frame mostrar
+            elapsed = current_time - self.celebration_timer
+            current_frame = elapsed // frame_duration
+            if current_frame >= total_frames:
+                self.show_celebration = False
+                self.celebration_index = 0
+            else:
+                self.celebration_index = current_frame % len(self.celebration_frames)
+        frame = self.celebration_frames[self.celebration_index]
+
+        # Dibujar fondo del recuadro (opcional)
+        pygame.draw.rect(self.screen, (100, 100, 100), frame_rect)
+        
+        # Redimensionar y blittear el frame
+        scaled_frame = pygame.transform.scale(frame, (frame_rect.width, frame_rect.height))
+        self.screen.blit(scaled_frame, frame_rect.topleft)
+
     def to_screen_coords(self, x, y):
         return self.offset_x + x * self.cell_size, self.offset_y + y * self.cell_size
     
@@ -151,6 +201,8 @@ class TetrisGame:
             del self.board[y]
             self.board.insert(0, [(0, 0, 0)] * 10)
         return len(rows_to_delete)
+    
+
     def move_down(self):
         shape = self.current_piece.get_current_shape()
         if self.valid_move(shape, self.current_piece.x, self.current_piece.y + 1):
@@ -164,7 +216,9 @@ class TetrisGame:
                         y = self.current_piece.y + i
                         if 0 <= x < 10 and 0 <= y < 20:
                             self.board[y][x] = self.current_piece.color
+
             line_points=self.deleteColumns()
+
             if line_points == 1:
                 self.score += 40
             elif line_points == 2:
@@ -173,6 +227,12 @@ class TetrisGame:
                 self.score += 300
             elif line_points == 4:
                 self.score += 1200
+
+            # Activar animación si se borró alguna línea
+            if line_points > 0:
+                self.show_celebration = True
+                self.celebration_timer = pygame.time.get_ticks()
+                self.celebration_index = 0
             self.spawn_piece()
 
     def rotate(self):
