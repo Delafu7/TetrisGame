@@ -21,9 +21,9 @@ class TetrisGame:
         self.board_width = self.cols * self.cell_size
         self.board_height = self.rows * self.cell_size
 
-        screen_width, screen_height = self.screen.get_size()
-        self.offset_x = (screen_width - self.board_width) // 2
-        self.offset_y = (screen_height - self.board_height) // 2
+        self.screen_width, self.screen_height = self.screen.get_size()
+        self.offset_x = (self.screen_width - self.board_width) // 2  - 100
+        self.offset_y = (self.screen_height - self.board_height) // 2
         
         self.celebration_frames = [
             pygame.image.load(f"imagens/russianDancer/frame_{i}.gif").convert_alpha() for i in range(29)  # Cargar 29 frames de la animación
@@ -139,16 +139,36 @@ class TetrisGame:
         # Puntuación
         font = pygame.font.Font("other/PressStart2P.ttf", 20)
         score_text = font.render(f"PUNTOS: {self.score}", True, (255, 255, 255))
-        self.screen.blit(score_text, (self.offset_x, self.offset_y - 40))
+        text_rect = score_text.get_rect()
+        text_rect.topleft = (20, 10)  # margen izquierda 20px, arriba 10px
+        
+        # Fondo para mejorar visibilidad
+        background_rect = text_rect.inflate(20, 10)  # un poco más grande que el texto
+        pygame.draw.rect(self.screen, (0, 0, 0), background_rect, border_radius=5)
+        
+        # Mostrar animación de celebración si está activa
 
-                # Mostrar animación de celebración si está activa
-        frame_rect = pygame.Rect(20, 20, 60, 60)  # Posición y tamaño del recuadro (ajústalo a tu gusto)
+        # Tamaño del recuadro
+        frame_width, frame_height = 120, 120
+
+        # Posición en la parte superior derecha, pero con margen
+        frame_x = self.screen_width - frame_width - 30  # margen derecho de 30 px
+        frame_y = 30  # margen desde arriba de 30 px
+        frame_rect = pygame.Rect(frame_x, frame_y, frame_width, frame_height)
+        # Fondo cuadrado con borde
+        background_color = (230, 230, 230)  # ahora más claro
+        border_color = (0, 0, 0)
+
+        # Definir posición y tamaño del recuadro
+        frame_width, frame_height = 120, 120
+        frame_x = self.screen_width - frame_width - 30
+        frame_y = 30
+        frame_rect = pygame.Rect(frame_x, frame_y, frame_width, frame_height)
+
         current_time = pygame.time.get_ticks()
         if self.show_celebration:
-            # Duración total basada en ciclos
-            frame_duration = 150  # tiempo por frame en ms
-            total_frames = len(self.celebration_frames) * 2  # repetir 2 veces
-            # Calcular qué frame mostrar
+            frame_duration = 150
+            total_frames = len(self.celebration_frames) * 2
             elapsed = current_time - self.celebration_timer
             current_frame = elapsed // frame_duration
             if current_frame >= total_frames:
@@ -156,14 +176,30 @@ class TetrisGame:
                 self.celebration_index = 0
             else:
                 self.celebration_index = current_frame % len(self.celebration_frames)
+
         frame = self.celebration_frames[self.celebration_index]
 
-        # Dibujar fondo del recuadro (opcional)
-        pygame.draw.rect(self.screen, (100, 100, 100), frame_rect)
-        
-        # Redimensionar y blittear el frame
+        # Dibujar fondo cuadrado con borde
+        pygame.draw.rect(self.screen, background_color, frame_rect, border_radius=10)
+        pygame.draw.rect(self.screen, border_color, frame_rect, 3, border_radius=10)
+
+        # Dibujar imagen
         scaled_frame = pygame.transform.scale(frame, (frame_rect.width, frame_rect.height))
         self.screen.blit(scaled_frame, frame_rect.topleft)
+        # Dibujar recuadro para la puntuación justo debajo del recuadro de animación
+        score_box_width = frame_rect.width
+        score_box_height = 40
+        score_box_x = frame_rect.x
+        score_box_y = frame_rect.y + frame_rect.height + 10
+        score_rect = pygame.Rect(score_box_x, score_box_y, score_box_width, score_box_height)
+
+        # Fondo y borde del recuadro de puntuación
+        score_background = (240, 240, 240)
+        score_border = (0, 0, 0)
+        pygame.draw.rect(self.screen, score_background, score_rect, border_radius=8)
+        pygame.draw.rect(self.screen, score_border, score_rect, 2, border_radius=8)
+
+        self.screen.blit(score_text, text_rect)
 
     def to_screen_coords(self, x, y):
         return self.offset_x + x * self.cell_size, self.offset_y + y * self.cell_size
