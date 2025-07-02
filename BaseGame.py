@@ -1,5 +1,7 @@
 from BlockConstructor import BlockConstructor
 import pygame
+import math
+import time
 
 class TetrisGame:
     def __init__(self, screen, mode=0):
@@ -75,7 +77,23 @@ class TetrisGame:
         if current_time - self.fall_time > self.fall_speed:
             self.move_down()
             self.fall_time = current_time
-
+    
+    def get_animated_rainbow_colors(self, length, speed=2.0):
+        t = time.time() * speed
+        colors = []
+        for i in range(length):
+            r = int(127 * math.sin(t + i) + 128)
+            g = int(127 * math.sin(t + i + 2) + 128)
+            b = int(127 * math.sin(t + i + 4) + 128)
+            colors.append((r, g, b))
+        return colors
+    def render_multicolor_text(self, text, font, colors):
+        surfaces = []
+        for i, char in enumerate(text):
+            color = colors[i % len(colors)]
+            surf = font.render(char, True, color)
+            surfaces.append(surf)
+        return surfaces
     def draw(self):
         self.screen.fill((20, 20, 40))  # Color de fondo general
 
@@ -90,6 +108,7 @@ class TetrisGame:
                 self.board_height
             )
         )
+
 
         # Dibujar la cuadrícula
         for x in range(self.cols + 1):
@@ -136,35 +155,8 @@ class TetrisGame:
                     pygame.draw.rect(self.screen, self.current_piece.color, (x, y, 30, 30))
                     pygame.draw.rect(self.screen, (0, 0, 0), (x, y, 30, 30), 2)
 
-        # Puntuación
-        font = pygame.font.Font("other/PressStart2P.ttf", 20)
-        score_text = font.render(f"PUNTOS: {self.score}", True, (255, 255, 255))
-        text_rect = score_text.get_rect()
-        text_rect.topleft = (20, 10)  # margen izquierda 20px, arriba 10px
         
-        # Fondo para mejorar visibilidad
-        background_rect = text_rect.inflate(20, 10)  # un poco más grande que el texto
-        pygame.draw.rect(self.screen, (0, 0, 0), background_rect, border_radius=5)
-        
-        # Mostrar animación de celebración si está activa
-
-        # Tamaño del recuadro
-        frame_width, frame_height = 120, 120
-
-        # Posición en la parte superior derecha, pero con margen
-        frame_x = self.screen_width - frame_width - 30  # margen derecho de 30 px
-        frame_y = 30  # margen desde arriba de 30 px
-        frame_rect = pygame.Rect(frame_x, frame_y, frame_width, frame_height)
-        # Fondo cuadrado con borde
-        background_color = (230, 230, 230)  # ahora más claro
-        border_color = (0, 0, 0)
-
-        # Definir posición y tamaño del recuadro
-        frame_width, frame_height = 120, 120
-        frame_x = self.screen_width - frame_width - 30
-        frame_y = 30
-        frame_rect = pygame.Rect(frame_x, frame_y, frame_width, frame_height)
-
+       
         current_time = pygame.time.get_ticks()
         if self.show_celebration:
             frame_duration = 150
@@ -178,28 +170,114 @@ class TetrisGame:
                 self.celebration_index = current_frame % len(self.celebration_frames)
 
         frame = self.celebration_frames[self.celebration_index]
+        # Tamaño del recuadro contenedor (más alto para incluir imagen + puntuación)
+        # === CONFIGURACIÓN DE POSICIONES ===
+        right_margin = 20
+        top_start_y = 60  # Más arriba
+        container_width = 150
 
-        # Dibujar fondo cuadrado con borde
-        pygame.draw.rect(self.screen, background_color, frame_rect, border_radius=10)
-        pygame.draw.rect(self.screen, border_color, frame_rect, 3, border_radius=10)
+        # === BLOQUE DE ANIMACIÓN ===
+        animation_container_height = 120
+        animation_x = self.screen_width - container_width - right_margin
+        animation_y = top_start_y
+        animation_rect = pygame.Rect(animation_x, animation_y, container_width, animation_container_height)
 
-        # Dibujar imagen
-        scaled_frame = pygame.transform.scale(frame, (frame_rect.width, frame_rect.height))
-        self.screen.blit(scaled_frame, frame_rect.topleft)
-        # Dibujar recuadro para la puntuación justo debajo del recuadro de animación
-        score_box_width = frame_rect.width
-        score_box_height = 40
-        score_box_x = frame_rect.x
-        score_box_y = frame_rect.y + frame_rect.height + 10
-        score_rect = pygame.Rect(score_box_x, score_box_y, score_box_width, score_box_height)
+        # Fondo y borde del recuadro de animación
+        pygame.draw.rect(self.screen, (240, 240, 240), animation_rect, border_radius=12)
+        pygame.draw.rect(self.screen, (0, 0, 0), animation_rect, 3, border_radius=12)
 
-        # Fondo y borde del recuadro de puntuación
-        score_background = (240, 240, 240)
-        score_border = (0, 0, 0)
-        pygame.draw.rect(self.screen, score_background, score_rect, border_radius=8)
-        pygame.draw.rect(self.screen, score_border, score_rect, 2, border_radius=8)
+        # Imagen de celebración
+        frame_size = 100
+        frame_x = animation_x + (container_width - frame_size) // 2
+        frame_y = animation_y + 10
 
-        self.screen.blit(score_text, text_rect)
+        # Animación
+        current_time = pygame.time.get_ticks()
+        if self.show_celebration:
+            frame_duration = 150
+            total_frames = len(self.celebration_frames) * 2
+            elapsed = current_time - self.celebration_timer
+            current_frame = elapsed // frame_duration
+            if current_frame >= total_frames:
+                self.show_celebration = False
+                self.celebration_index = 0
+            else:
+                self.celebration_index = current_frame % len(self.celebration_frames)
+
+        frame = self.celebration_frames[self.celebration_index]
+        scaled_frame = pygame.transform.scale(frame, (frame_size, frame_size))
+        self.screen.blit(scaled_frame, (frame_x, frame_y))
+
+        # === BLOQUE DE PUNTUACIÓN ===
+        font_score = pygame.font.Font("other/PressStart2P.ttf", 14)
+        rainbow_colors = self.get_animated_rainbow_colors(20)
+
+        # Crear texto multicolor
+        padded_score = str(self.score).rjust(6, " ")
+        score_string = f"PUNTOS: {padded_score}"
+        rainbow_colors_score = self.get_animated_rainbow_colors(len(score_string))
+        score_text_parts = self.render_multicolor_text(score_string, font_score, rainbow_colors_score)
+
+        # Calcular tamaño total del texto
+        text_width = sum(surf.get_width() for surf in score_text_parts)
+        text_height = max(surf.get_height() for surf in score_text_parts)
+
+        # Recuadro
+        score_box_padding_x = 10
+        score_box_padding_y = 8
+        score_box_width = text_width + 2 * score_box_padding_x
+        score_box_height = text_height + 2 * score_box_padding_y
+
+        score_box_x = self.screen_width - score_box_width - 20
+        score_box_y = animation_y + animation_container_height + 20  # Más arriba, pero con margen
+
+        score_box = pygame.Rect(score_box_x, score_box_y, score_box_width, score_box_height)
+        pygame.draw.rect(self.screen, (255, 255, 255), score_box, border_radius=6)
+        pygame.draw.rect(self.screen, (0, 0, 0), score_box, 2, border_radius=6)
+
+        # Dibujar el texto multicolor centrado
+        start_x = score_box.centerx - (text_width // 2)
+        y = score_box.centery - (text_height // 2)
+        for surf in score_text_parts:
+            self.screen.blit(surf, (start_x, y))
+            start_x += surf.get_width()
+
+        # === BLOQUE TOP 5 ===
+        top_scores = get_top_scores()
+        font_top = pygame.font.Font("other/PressStart2P.ttf", 12)
+        line_height = 20
+        padding = 10
+
+        # Recuadro para el top 5
+        top_box_width = 180
+        top_box_height = (len(top_scores) + 1) * line_height + padding * 2
+        top_box_x = self.screen_width - top_box_width - 20
+        top_box_y = self.screen_height - top_box_height - 20
+
+        top_box_rect = pygame.Rect(top_box_x, top_box_y, top_box_width, top_box_height)
+        pygame.draw.rect(self.screen, (245, 245, 245), top_box_rect, border_radius=10)
+        pygame.draw.rect(self.screen, (0, 0, 0), top_box_rect, 2, border_radius=10)
+
+        # Dibujar título
+        title_string = "TOP 5"
+        rainbow_colors_title = self.get_animated_rainbow_colors(len(title_string))
+        title_surfs = self.render_multicolor_text(title_string, font_top, rainbow_colors_title)
+        tx = top_box_x + padding
+        ty = top_box_y + padding
+        for surf in title_surfs:
+            self.screen.blit(surf, (tx, ty))
+            tx += surf.get_width()
+
+       # Dibujar las puntuaciones (solo una vez)
+        for i, score in enumerate(top_scores):
+            score_str = f"{i + 1}.- {score.split(',')[0]}: {score.split(',')[1]}"
+            colors_line = self.get_animated_rainbow_colors(len(score_str))
+            parts = self.render_multicolor_text(score_str, font_top, colors_line)
+            x = top_box_x + padding
+            y = top_box_y + padding + (i + 1) * line_height
+            for surf in parts:
+                self.screen.blit(surf, (x, y))
+                x += surf.get_width()
 
     def to_screen_coords(self, x, y):
         return self.offset_x + x * self.cell_size, self.offset_y + y * self.cell_size
@@ -285,3 +363,11 @@ class TetrisGame:
     def game_over(self):
         return any(self.board[1][x] != (0, 0, 0) for x in range(10))
 
+def get_top_scores(filename="scores.txt", count=5):
+        SCORES_FILE = "scores.txt"
+        try:
+            with open(filename, "r") as f:
+                scores = [line.strip() for line in f.readlines()]
+            return sorted(scores, key=lambda x: int(x.split(",")[1]), reverse=True)[:count]
+        except FileNotFoundError:
+            return []
