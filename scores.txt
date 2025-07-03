@@ -8,3 +8,4 @@ Yoly,0
 Paco Leon,140
 Tetris,314
 pepe,170
+patata,916
