@@ -8,8 +8,6 @@ class TetrisGame:
         self.screen = screen
         self.board = [[(0, 0, 0)] * 10 for _ in range(20)]  # tablero de 20x10
         self.block_constructor = BlockConstructor()
-        self.current_piece = None
-        self.spawn_piece()
         self.down_key_held = False
         self.down_key_start_time = 0
         self.down_key_last_scored = 0
@@ -19,6 +17,10 @@ class TetrisGame:
         self.cols = 10
         self.rows = 20
         self.score=0
+        
+        self.next_pieces = [self.block_constructor.getRandomBlock() for _ in range(2)]
+        self.current_piece = None
+        self.spawn_piece()
 
         self.board_width = self.cols * self.cell_size
         self.board_height = self.rows * self.cell_size
@@ -70,13 +72,23 @@ class TetrisGame:
             self.board[y][x] = (100, 100, 100)  # Color gris para los obstáculos
             
     def spawn_piece(self):
-        self.current_piece = self.block_constructor.getRandomBlock()
+        # Inicializar la cola si no existe
+        if not hasattr(self, 'next_pieces') or self.next_pieces is None:
+            self.next_pieces = [self.block_constructor.getRandomBlock() for _ in range(2)]
+
+        # Tomar la siguiente pieza como la actual
+        self.current_piece = self.next_pieces.pop(0)
+        self.current_piece.x = self.cols // 2 - 2
+        self.current_piece.y = 0
+
+        # Añadir una nueva pieza aleatoria al final de la cola
+        self.next_pieces.append(self.block_constructor.getRandomBlock())
 
     def update(self):
-        current_time = pygame.time.get_ticks()
-        if current_time - self.fall_time > self.fall_speed:
-            self.move_down()
-            self.fall_time = current_time
+            current_time = pygame.time.get_ticks()
+            if current_time - self.fall_time > self.fall_speed:
+                self.move_down()
+                self.fall_time = current_time
     
     def get_animated_rainbow_colors(self, length, speed=2.0):
         t = time.time() * speed
@@ -108,7 +120,6 @@ class TetrisGame:
                 self.board_height
             )
         )
-
 
         # Dibujar la cuadrícula
         for x in range(self.cols + 1):
@@ -279,6 +290,50 @@ class TetrisGame:
                 self.screen.blit(surf, (x, y))
                 x += surf.get_width()
 
+        # === BLOQUE SIGUIENTES PIEZAS (CENTRO DERECHA) ===
+        next_piece_box_width = 150
+        next_piece_box_height = 100
+        box_padding = 8
+        gap_between_boxes = 30
+        block_size = 20
+
+        font_next = pygame.font.Font("other/PressStart2P.ttf", 12)
+        label_text = font_next.render("SIGUIENTES", True, (255, 255, 255))
+
+        total_height = 2 * next_piece_box_height + gap_between_boxes + 30  # altura total con etiqueta
+        start_y = (self.screen_height - total_height) // 2
+        start_x = self.screen_width - next_piece_box_width - 60  # margen derecho
+
+        # Dibujar etiqueta "SIGUIENTES"
+        self.screen.blit(label_text, (start_x, start_y))
+
+        # Dibujar los dos bloques de las próximas piezas
+        for i in range(2):
+            if i >= len(self.next_pieces):
+                break
+
+            piece = self.next_pieces[i]
+            shape = piece.get_current_shape()
+
+            box_x = start_x + 20
+            box_y = start_y + 40 + i * (next_piece_box_height + gap_between_boxes)
+            pygame.draw.rect(self.screen, (240, 240, 240), (box_x, box_y, next_piece_box_width, next_piece_box_height), border_radius=6)
+            pygame.draw.rect(self.screen, (0, 0, 0), (box_x, box_y, next_piece_box_width, next_piece_box_height), 2, border_radius=6)
+
+            # Centrar la pieza dentro del recuadro
+            shape_width = len(shape[0]) * block_size
+            shape_height = len(shape) * block_size
+            offset_x = box_x + (next_piece_box_width - shape_width) // 2
+            offset_y = box_y + (next_piece_box_height - shape_height) // 2
+
+            for row_idx, row in enumerate(shape):
+                for col_idx, cell in enumerate(row):
+                    if cell == '0':
+                        rect_x = offset_x + col_idx * block_size
+                        rect_y = offset_y + row_idx * block_size
+                        pygame.draw.rect(self.screen, piece.color, (rect_x, rect_y, block_size, block_size))
+                        pygame.draw.rect(self.screen, (0, 0, 0), (rect_x, rect_y, block_size, block_size), 2)
+
     def to_screen_coords(self, x, y):
         return self.offset_x + x * self.cell_size, self.offset_y + y * self.cell_size
     
@@ -331,7 +386,7 @@ class TetrisGame:
                         if 0 <= x < 10 and 0 <= y < 20:
                             self.board[y][x] = self.current_piece.color
 
-            line_points=self.deleteColumns()
+            line_points = self.deleteColumns()
 
             if line_points == 1:
                 self.score += 40
@@ -347,7 +402,12 @@ class TetrisGame:
                 self.show_celebration = True
                 self.celebration_timer = pygame.time.get_ticks()
                 self.celebration_index = 0
-            self.spawn_piece()
+
+            # === ACTUALIZAR PIEZA ACTUAL Y COLA ===
+            self.current_piece = self.next_pieces.pop(0)  # Tomar siguiente
+            self.current_piece.x = self.cols // 2 - 2
+            self.current_piece.y = 0
+            self.next_pieces.append(self.block_constructor.getRandomBlock())  # Agregar nueva pieza
 
     def rotate(self):
 
