@@ -7,6 +7,8 @@ class Piece:
         self.rotation = 0
         self.color = color
         self.x = 3
+        shape = self.get_current_shape()
+        offset = self.count_empty_top_rows(shape)
         self.y = -self.get_top_offset()
 
     def get_top_offset(self):
@@ -15,6 +17,15 @@ class Piece:
             if '0' in row:
                 return i
         return 0
+    
+    def count_empty_top_rows(self, shape):
+        count = 0
+        for row in shape:
+            if all(c != '0' for c in row):
+                count += 1
+            else:
+                break  # se detiene en la primera fila con un bloque real
+        return count
     
     def get_current_shape(self):
         return self.rotations[self.rotation % len(self.rotations)]

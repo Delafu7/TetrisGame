@@ -18,8 +18,6 @@ class TetrisGame:
         self.rows = 20
         self.score=0
         
-        self.next_pieces = [self.block_constructor.getRandomBlock() for _ in range(2)]
-        self.current_piece = None
         self.spawn_piece()
 
         self.board_width = self.cols * self.cell_size
@@ -71,6 +69,7 @@ class TetrisGame:
             y = random.randint(15, 19)
             self.board[y][x] = (100, 100, 100)  # Color gris para los obstáculos
             
+
     def spawn_piece(self):
         # Inicializar la cola si no existe
         if not hasattr(self, 'next_pieces') or self.next_pieces is None:
@@ -78,10 +77,7 @@ class TetrisGame:
 
         # Tomar la siguiente pieza como la actual
         self.current_piece = self.next_pieces.pop(0)
-        self.current_piece.x = self.cols // 2 - 2
-        self.current_piece.y = 0
-
-        # Añadir una nueva pieza aleatoria al final de la cola
+       # Calcular el desplazamiento dinámico según las filas vacías arriba
         self.next_pieces.append(self.block_constructor.getRandomBlock())
 
     def update(self):
@@ -99,6 +95,8 @@ class TetrisGame:
             b = int(127 * math.sin(t + i + 4) + 128)
             colors.append((r, g, b))
         return colors
+    
+
     def render_multicolor_text(self, text, font, colors):
         surfaces = []
         for i, char in enumerate(text):
@@ -106,6 +104,26 @@ class TetrisGame:
             surf = font.render(char, True, color)
             surfaces.append(surf)
         return surfaces
+    
+    def trim_shape(self, shape):
+        # Elimina filas vacías
+        trimmed_rows = [row for row in shape if any(cell == '0' for cell in row)]
+        
+        # Elimina columnas vacías
+        if not trimmed_rows:
+            return trimmed_rows
+        
+        # Transponer para analizar columnas como filas
+        transposed = list(zip(*trimmed_rows))
+        trimmed_columns = [col for col in transposed if any(cell == '0' for cell in col)]
+        
+        # Volver a transponer para obtener el shape recortado
+        trimmed = list(zip(*trimmed_columns))
+        
+        return [list(row) for row in trimmed]
+    
+    
+        
     def draw(self):
         self.screen.fill((20, 20, 40))  # Color de fondo general
 
@@ -163,8 +181,8 @@ class TetrisGame:
             for j, cell in enumerate(row):
                 if cell == '0':
                     x, y = self.to_screen_coords(self.current_piece.x + j, self.current_piece.y + i)
-                    pygame.draw.rect(self.screen, self.current_piece.color, (x, y, 30, 30))
-                    pygame.draw.rect(self.screen, (0, 0, 0), (x, y, 30, 30), 2)
+                    pygame.draw.rect(self.screen, self.current_piece.color, (x, y, self.cell_size, self.cell_size))
+                    pygame.draw.rect(self.screen, (0, 0, 0), (x, y, self.cell_size, self.cell_size), 2)
 
         
        
@@ -221,7 +239,6 @@ class TetrisGame:
 
         # === BLOQUE DE PUNTUACIÓN ===
         font_score = pygame.font.Font("other/PressStart2P.ttf", 14)
-        rainbow_colors = self.get_animated_rainbow_colors(20)
 
         # Crear texto multicolor
         padded_score = str(self.score).rjust(6, " ")
@@ -291,21 +308,28 @@ class TetrisGame:
                 x += surf.get_width()
 
         # === BLOQUE SIGUIENTES PIEZAS (CENTRO DERECHA) ===
-        next_piece_box_width = 150
+        next_piece_box_width = 120
         next_piece_box_height = 100
         box_padding = 8
         gap_between_boxes = 30
         block_size = 20
 
         font_next = pygame.font.Font("other/PressStart2P.ttf", 12)
-        label_text = font_next.render("SIGUIENTES", True, (255, 255, 255))
-
+        label_text ="SIGUIENTES:"
+        
         total_height = 2 * next_piece_box_height + gap_between_boxes + 30  # altura total con etiqueta
         start_y = (self.screen_height - total_height) // 2
         start_x = self.screen_width - next_piece_box_width - 60  # margen derecho
 
-        # Dibujar etiqueta "SIGUIENTES"
-        self.screen.blit(label_text, (start_x, start_y))
+        rainbow_colors_next = self.get_animated_rainbow_colors(len(label_text))
+        label_surfs = self.render_multicolor_text(label_text, font_next, rainbow_colors_next)
+
+        x = start_x
+        y = start_y
+        for surf in label_surfs:
+            self.screen.blit(surf, (x, y))
+            x += surf.get_width()
+
 
         # Dibujar los dos bloques de las próximas piezas
         for i in range(2):
@@ -313,7 +337,8 @@ class TetrisGame:
                 break
 
             piece = self.next_pieces[i]
-            shape = piece.get_current_shape()
+            raw_shape = piece.get_current_shape()
+            shape = self.trim_shape(raw_shape)
 
             box_x = start_x + 20
             box_y = start_y + 40 + i * (next_piece_box_height + gap_between_boxes)
@@ -404,11 +429,8 @@ class TetrisGame:
                 self.celebration_index = 0
 
             # === ACTUALIZAR PIEZA ACTUAL Y COLA ===
-            self.current_piece = self.next_pieces.pop(0)  # Tomar siguiente
-            self.current_piece.x = self.cols // 2 - 2
-            self.current_piece.y = 0
-            self.next_pieces.append(self.block_constructor.getRandomBlock())  # Agregar nueva pieza
-
+            self.spawn_piece()
+            
     def rotate(self):
 
         #TODO rotate is not working properly
