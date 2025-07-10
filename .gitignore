@@ -1,3 +1,4 @@
 venv/
-__pycaache__/
+__pycache__/
 scores.txt
+tempCodeRunnerFile.py
