@@ -54,6 +54,8 @@ class GraphicsParty:
             pygame.mixer.music.play(-1)  # Reproduce en bucle
         except Exception as e:
             print(f"Error al cargar música: {e}")
+
+    
 class InicialMenu:
     def __init__(self):
         self.background = None

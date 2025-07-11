@@ -8,9 +8,9 @@ class TetrisGame:
         self.screen = screen
         self.board = [[(0, 0, 0)] * 10 for _ in range(20)]  # tablero de 20x10
         self.block_constructor = BlockConstructor()
-        self.down_key_held = False
-        self.down_key_start_time = 0
-        self.down_key_last_scored = 0
+        self.down_key_held = False # Parte de la funcionalidad de mantener presionada la tecla hacia abajo
+        self.down_key_start_time = 0 #Tiempo de inicio de la tecla hacia abajo
+        self.down_key_last_scored = 0 #Último tiempo en el que se sumó un punto
         self.down_score_interval = 50  # Cada 50 ms sumamos 1 punto
         self.fall_time = 0
         self.cell_size = 30
@@ -44,10 +44,23 @@ class TetrisGame:
         
         
     def handle_down_key_hold(self):
+        """
+        Funcionalidad: Maneja la lógica de mantener presionada la tecla hacia abajo.
+        Permite que la pieza baje constantemente mientras la tecla está presionada,
+        y otorga puntos por cada intervalo de tiempo transcurrido.
+        Parámetros:
+            - None
+        Retorna:
+            - None
+        """
+        # Verifica si la tecla hacia abajo está presionada
         keys = pygame.key.get_pressed()
         if keys[pygame.K_DOWN]:
+            # Si la tecla está presionada, actualiza el tiempo
             now = pygame.time.get_ticks()
             if not self.down_key_held:
+                # Si la tecla no estaba presionada, inicia el conteo
+                # y marca el tiempo de inicio y el último tiempo puntuado
                 self.down_key_held = True
                 self.down_key_start_time = now
                 self.down_key_last_scored = now
@@ -156,7 +169,7 @@ class TetrisGame:
 
         # Posición fantasma
         ghost_piece = self.current_piece.copy()
-        while self.valid_move(ghost_piece.get_current_shape(), ghost_piece.x, ghost_piece.y + 1):
+        while self.valid_move(ghost_piece.get_current_shape(),ghost_piece.x, ghost_piece.y + 1):
             ghost_piece.y += 1
 
         ghost_shape = ghost_piece.get_current_shape()
@@ -363,8 +376,14 @@ class TetrisGame:
         return self.offset_x + x * self.cell_size, self.offset_y + y * self.cell_size
     
             
-        
-    def valid_move(self, shape, x, y):
+    def valid_move(self,shape,x, y):
+        """        Verifica si la pieza puede moverse a una nueva posición (x, y) en el tablero.
+        Args:
+            x (int): Nueva coordenada x.
+            y (int): Nueva coordenada y.
+        Returns:
+            bool: True si el movimiento es válido, False en caso contrario.
+        """
         for i, row in enumerate(shape):
             for j, cell in enumerate(row):
                 if cell == '0':
@@ -376,15 +395,15 @@ class TetrisGame:
                         return False
         return True
 
+
     def move_left(self):
-        shape = self.current_piece.get_current_shape()
-        if self.valid_move(shape, self.current_piece.x - 1, self.current_piece.y):
+        if self.valid_move(self.current_piece.get_current_shape(),self.current_piece.x - 1, self.current_piece.y):
             self.current_piece.x -= 1
 
     def move_right(self):
-        shape = self.current_piece.get_current_shape()
-        if self.valid_move(shape, self.current_piece.x + 1, self.current_piece.y):
+        if self.valid_move( self.current_piece.get_current_shape(),self.current_piece.x + 1, self.current_piece.y):
             self.current_piece.x += 1
+
 
     def deleteColumns(self):
         rows_to_delete = []
@@ -398,12 +417,18 @@ class TetrisGame:
     
 
     def move_down(self):
-        shape = self.current_piece.get_current_shape()
-        if self.valid_move(shape, self.current_piece.x, self.current_piece.y + 1):
+        """Funcionalidad: Mueve la pieza actual hacia abajo.
+        Si la pieza no puede moverse hacia abajo, la guarda en el tablero y genera una nueva pieza.
+        Parámetros:
+            - None
+        Retorna:
+            - None
+        """
+        if self.valid_move(self.current_piece.get_current_shape(),self.current_piece.x,self.current_piece.y + 1):
             self.current_piece.y += 1
         else:
             # Guardar pieza en el tablero
-            for i, row in enumerate(shape):
+            for i, row in enumerate(self.current_piece.get_current_shape()):
                 for j, cell in enumerate(row):
                     if cell == '0':
                         x = self.current_piece.x + j
@@ -436,7 +461,7 @@ class TetrisGame:
         #TODO rotate is not working properly
         # Intentar rotar, y solo hacerlo si es una posición válida
         self.current_piece.rotate()
-        if not self.valid_move(self.current_piece.get_current_shape(), self.current_piece.x, self.current_piece.y):
+        if not self.valid_move(self.current_piece.get_current_shape(),self.current_piece.x, self.current_piece.y):
             # Si no es válida, deshacer la rotación
             self.current_piece.rotate()
             self.current_piece.rotate()
