@@ -6,10 +6,14 @@ screen_width = 600
 screen_height = 900
 # Crear pantalla
 screen = pygame.display.set_mode((screen_width, screen_height))
+# Establecer título de la ventana
+pygame.display.set_caption("Tetris")
 
 class GraphicsParty:
     @staticmethod
-    def get_player_name(font, name=""):
+    def get_player_name(name=""):
+        #Tipo y tamaño de letra
+        font = pygame.font.Font("other/PressStart2P.ttf", 16)
         # Tamaño del rectángulo del input
         box_width = 500
         box_height = 120
@@ -41,6 +45,15 @@ class GraphicsParty:
         #Actualizar la pantalla y limitar FPS
         updateDisplay()
 
+    def put_music():
+        # Música de fondo
+        try:
+            pygame.mixer.init()
+            pygame.mixer.music.load('other/Original_Tetris_theme.mp3')
+            pygame.mixer.music.set_volume(0.5)
+            pygame.mixer.music.play(-1)  # Reproduce en bucle
+        except Exception as e:
+            print(f"Error al cargar música: {e}")
 class InicialMenu:
     def __init__(self):
         self.background = None
@@ -136,3 +149,6 @@ class InicialMenu:
 
 def updateDisplay():
     pygame.display.flip()
+
+    
+    

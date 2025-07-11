@@ -6,7 +6,7 @@ from Graphics import updateDisplay
 
 SCORES_FILE = "scores.txt"
 
-def get_player_name(font):
+def get_player_name():
     """
     Funcionalidad: Permite al jugador ingresar su nombre después de perder.
     Parámetros:
@@ -41,7 +41,7 @@ def get_player_name(font):
                         name += event.unicode
 
         # LLamada a la parte visual del juego
-        GraphicsParty.get_player_name(font,name)
+        GraphicsParty.get_player_name(name)
        
         clock.tick(30)
     
@@ -145,14 +145,6 @@ def party():
     # Inicializar Pygame
     pygame.init()
 
-    # Pantalla 600x900
-    screen_width = 600
-    screen_height = 900
-    # Crear pantalla
-    screen = pygame.display.set_mode((screen_width, screen_height))
-    # Establecer título de la ventana
-    pygame.display.set_caption("Tetris")
-
     while True:
         selected_mode = show_start_menu()
         if selected_mode !=0 and selected_mode != 1 and selected_mode != 2:
@@ -178,14 +170,8 @@ def run_game(screen,mode=0):
     # Mostrar menú y obtener modo elegido
     game = TetrisGame(screen, mode=mode)  
 
-    # Música de fondo
-    try:
-        pygame.mixer.init()
-        pygame.mixer.music.load('other/Original_Tetris_theme.mp3')
-        pygame.mixer.music.set_volume(0.5)
-        pygame.mixer.music.play(-1) # Reproduce en bucle
-    except Exception as e:
-        print(f"Error al cargar música: {e}")
+    # Poner música de fondo
+    GraphicsParty.put_music()
 
     # Control FPS
     clock = pygame.time.Clock()
@@ -197,6 +183,7 @@ def run_game(screen,mode=0):
     # Esto es útil para evitar que el jugador tenga que presionar repetidamente la tecla de rotación
     # y hace que la jugabilidad sea más fluida.
     #200 ms de espera entre repeticiones, 100 ms de intervalo
+    
     pygame.key.set_repeat(200, 100)
     while running:
         # Manejar eventos
@@ -228,17 +215,15 @@ def run_game(screen,mode=0):
         game.draw()
 
         # Actualizar la pantalla
-        pygame.display.flip()
+        updateDisplay()
 
         # Comprobar si el juego ha terminado
         if game.game_over():
-            font = pygame.font.Font("other/PressStart2P.ttf", 16)
-            name = get_player_name(font)
-            print("Game Over")
+            pygame.mixer.music.stop()
+            name = get_player_name()
             if len(name)>0:
                 save_score(name, game.score)
             running = False
-            pygame.mixer.music.stop()
         # Controlar FPS
         clock.tick(10)
 
