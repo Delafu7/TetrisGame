@@ -1,8 +1,10 @@
 from BlockConstructor import BlockConstructor
 import pygame
-import math
-import time
+import random
+from Graphics import *
+from Graphics import GraphicsParty
 
+SCORES_FILE = "scores.txt"
 class TetrisGame:
     def __init__(self, screen, mode=0):
         self.screen = screen
@@ -76,7 +78,13 @@ class TetrisGame:
             self.down_key_held = False
 
     def add_initial_obstacles(self):
-        import random
+        """
+        Funcionalidad: Agrega obstáculos iniciales al tablero en el modo con obstáculos.
+        Parámetros:
+            - None
+        Retorna:
+            - None
+        """
         for _ in range(5):
             x = random.randint(0, 9)
             y = random.randint(15, 19)
@@ -84,6 +92,13 @@ class TetrisGame:
             
 
     def spawn_piece(self):
+        """        
+        Funcionalidad: Genera una nueva pieza y la coloca en la parte superior del tablero.
+        Parámetros:
+            - None
+        Retorna:
+            - None
+        """
         # Inicializar la cola si no existe
         if not hasattr(self, 'next_pieces') or self.next_pieces is None:
             self.next_pieces = [self.block_constructor.getRandomBlock() for _ in range(2)]
@@ -94,31 +109,29 @@ class TetrisGame:
         self.next_pieces.append(self.block_constructor.getRandomBlock())
 
     def update(self):
-            current_time = pygame.time.get_ticks()
-            if current_time - self.fall_time > self.fall_speed:
-                self.move_down()
-                self.fall_time = current_time
+        """
+        Funcionalidad: Actualiza el estado del juego, maneja eventos y dibuja el tablero.
+        Parámetros:
+            - None
+        Retorna:
+            - None
+        """
+        current_time = pygame.time.get_ticks()
+        if current_time - self.fall_time > self.fall_speed:
+            self.move_down()
+            self.fall_time = current_time
     
-    def get_animated_rainbow_colors(self, length, speed=2.0):
-        t = time.time() * speed
-        colors = []
-        for i in range(length):
-            r = int(127 * math.sin(t + i) + 128)
-            g = int(127 * math.sin(t + i + 2) + 128)
-            b = int(127 * math.sin(t + i + 4) + 128)
-            colors.append((r, g, b))
-        return colors
     
-
-    def render_multicolor_text(self, text, font, colors):
-        surfaces = []
-        for i, char in enumerate(text):
-            color = colors[i % len(colors)]
-            surf = font.render(char, True, color)
-            surfaces.append(surf)
-        return surfaces
+    
     
     def trim_shape(self, shape):
+        """ 
+        Funcionalidad: Recorta el shape de la pieza para eliminar filas y columnas vacías.
+        Parámetros:
+            - shape: Lista de listas que representa el shape de la pieza.
+        Retorna:
+            - Una lista de listas recortada que representa el shape sin filas y columnas vacías.
+        """
         # Elimina filas vacías
         trimmed_rows = [row for row in shape if any(cell == '0' for cell in row)]
         
@@ -256,8 +269,8 @@ class TetrisGame:
         # Crear texto multicolor
         padded_score = str(self.score).rjust(6, " ")
         score_string = f"PUNTOS: {padded_score}"
-        rainbow_colors_score = self.get_animated_rainbow_colors(len(score_string))
-        score_text_parts = self.render_multicolor_text(score_string, font_score, rainbow_colors_score)
+        rainbow_colors_score = GraphicsParty.get_animated_rainbow_colors(len(score_string))
+        score_text_parts = GraphicsParty.render_multicolor_text(score_string, font_score, rainbow_colors_score)
 
         # Calcular tamaño total del texto
         text_width = sum(surf.get_width() for surf in score_text_parts)
@@ -301,8 +314,8 @@ class TetrisGame:
 
         # Dibujar título
         title_string = "TOP 5"
-        rainbow_colors_title = self.get_animated_rainbow_colors(len(title_string))
-        title_surfs = self.render_multicolor_text(title_string, font_top, rainbow_colors_title)
+        rainbow_colors_title = GraphicsParty.get_animated_rainbow_colors(len(title_string))
+        title_surfs = GraphicsParty.render_multicolor_text(title_string, font_top, rainbow_colors_title)
         tx = top_box_x + padding
         ty = top_box_y + padding
         for surf in title_surfs:
@@ -312,8 +325,8 @@ class TetrisGame:
        # Dibujar las puntuaciones (solo una vez)
         for i, score in enumerate(top_scores):
             score_str = f"{i + 1}.- {score.split(',')[0]}: {score.split(',')[1]}"
-            colors_line = self.get_animated_rainbow_colors(len(score_str))
-            parts = self.render_multicolor_text(score_str, font_top, colors_line)
+            colors_line = GraphicsParty.get_animated_rainbow_colors(len(score_str))
+            parts = GraphicsParty.render_multicolor_text(score_str, font_top, colors_line)
             x = top_box_x + padding
             y = top_box_y + padding + (i + 1) * line_height
             for surf in parts:
@@ -334,8 +347,8 @@ class TetrisGame:
         start_y = (self.screen_height - total_height) // 2
         start_x = self.screen_width - next_piece_box_width - 60  # margen derecho
 
-        rainbow_colors_next = self.get_animated_rainbow_colors(len(label_text))
-        label_surfs = self.render_multicolor_text(label_text, font_next, rainbow_colors_next)
+        rainbow_colors_next = GraphicsParty.get_animated_rainbow_colors(len(label_text))
+        label_surfs = GraphicsParty.render_multicolor_text(label_text, font_next, rainbow_colors_next)
 
         x = start_x
         y = start_y
@@ -373,6 +386,14 @@ class TetrisGame:
                         pygame.draw.rect(self.screen, (0, 0, 0), (rect_x, rect_y, block_size, block_size), 2)
 
     def to_screen_coords(self, x, y):
+        """
+        Funcionalidad: Convierte las coordenadas del tablero a coordenadas de pantalla.
+        Parámetros:
+            - x: Coordenada x en el tablero.
+            - y: Coordenada y en el tablero.
+        Retorna:
+            - Una tupla (screen_x, screen_y) con las coordenadas en la pantalla.
+        """
         return self.offset_x + x * self.cell_size, self.offset_y + y * self.cell_size
     
             
@@ -389,7 +410,7 @@ class TetrisGame:
                 if cell == '0':
                     new_x = x + j
                     new_y = y + i
-                    if new_x < 0 or new_x >= 10 or new_y >= 20:
+                    if new_x < 0 or new_x >= self.cols or new_y >= self.rows:
                         return False
                     if new_y >= 0 and self.board[new_y][new_x] != (0, 0, 0):
                         return False
@@ -397,22 +418,42 @@ class TetrisGame:
 
 
     def move_left(self):
+        """
+        Funcionalidad: Mueve la pieza actual hacia la izquierda si es un movimiento válido.
+        Parámetros:
+            - None 
+        Retorna:
+            - None"""
         if self.valid_move(self.current_piece.get_current_shape(),self.current_piece.x - 1, self.current_piece.y):
             self.current_piece.x -= 1
 
     def move_right(self):
+        """
+        Funcionalidad: Mueve la pieza actual hacia la derecha si es un movimiento válido.
+        Parámetros:
+            - None
+        Retorna:
+            - None
+        """
         if self.valid_move( self.current_piece.get_current_shape(),self.current_piece.x + 1, self.current_piece.y):
             self.current_piece.x += 1
 
 
     def deleteColumns(self):
+        """ 
+        Funcionalidad: Elimina las filas completas del tablero y devuelve la cantidad de filas eliminadas.
+        Parámetros:
+            - None
+        Retorna:
+            - int: Número de filas eliminadas.
+        """
         rows_to_delete = []
-        for y in range(20):
-            if all(self.board[y][x] != (0, 0, 0) for x in range(10)):
+        for y in range(self.rows):
+            if all(self.board[y][x] != (0, 0, 0) for x in range(self.cols)):
                 rows_to_delete.append(y)
         for y in rows_to_delete:
             del self.board[y]
-            self.board.insert(0, [(0, 0, 0)] * 10)
+            self.board.insert(0, [(0, 0, 0)] * self.cols)  # Añadir una fila vacía al inicio del tablero
         return len(rows_to_delete)
     
 
@@ -431,11 +472,14 @@ class TetrisGame:
             for i, row in enumerate(self.current_piece.get_current_shape()):
                 for j, cell in enumerate(row):
                     if cell == '0':
+                        # Calcular las coordenadas en el tablero
                         x = self.current_piece.x + j
                         y = self.current_piece.y + i
-                        if 0 <= x < 10 and 0 <= y < 20:
+                        # Asegurarse de que las coordenadas estén dentro del tablero
+                        if 0 <= x < self.cols and 0 <= y < self.rows:
                             self.board[y][x] = self.current_piece.color
 
+            # Eliminar filas completas y actualizar la puntuación
             line_points = self.deleteColumns()
 
             if line_points == 1:
@@ -453,12 +497,17 @@ class TetrisGame:
                 self.celebration_timer = pygame.time.get_ticks()
                 self.celebration_index = 0
 
-            # === ACTUALIZAR PIEZA ACTUAL Y COLA ===
+            # Actualizar la pieza actual
             self.spawn_piece()
             
     def rotate(self):
-
-        #TODO rotate is not working properly
+        """
+        Funcionalidad: Rota la pieza actual en sentido horario.
+        Parámetros:
+            - None
+        Retorna:
+            - None
+        """
         # Intentar rotar, y solo hacerlo si es una posición válida
         self.current_piece.rotate()
         if not self.valid_move(self.current_piece.get_current_shape(),self.current_piece.x, self.current_piece.y):
@@ -468,10 +517,24 @@ class TetrisGame:
             self.current_piece.rotate()
        
     def game_over(self):
+        """
+        Funcionalidad: Comprueba si el juego ha terminado.
+        Parámetros:
+            - None
+        Retorna:
+            - bool: True si el juego ha terminado, False en caso contrario.
+        """
         return any(self.board[1][x] != (0, 0, 0) for x in range(10))
 
-def get_top_scores(filename="scores.txt", count=5):
-        SCORES_FILE = "scores.txt"
+def get_top_scores(filename=SCORES_FILE, count=5):
+        """
+        Funcionalidad: Obtiene las puntuaciones más altas desde un archivo.
+        Parámetros:
+            - filename: Nombre del archivo donde se guardan las puntuaciones.
+            - count: Número de puntuaciones a retornar.
+        Retorna:
+            - Una lista de las puntuaciones más altas, cada una en formato "Jugador,Puntuación".
+        """ 
         try:
             with open(filename, "r") as f:
                 scores = [line.strip() for line in f.readlines()]

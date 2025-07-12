@@ -1,5 +1,7 @@
 
 import pygame
+import math
+import time
 
 # Pantalla 600x900
 screen_width = 600
@@ -55,7 +57,34 @@ class GraphicsParty:
         except Exception as e:
             print(f"Error al cargar música: {e}")
 
+    def get_animated_rainbow_colors(length, speed=2.0):
+        t = time.time() * speed
+        colors = []
+        for i in range(length):
+            r = int(127 * math.sin(t + i) + 128)
+            g = int(127 * math.sin(t + i + 2) + 128)
+            b = int(127 * math.sin(t + i + 4) + 128)
+            colors.append((r, g, b))
+        return colors
+    def render_multicolor_text(text, font, colors):
+        """
+        Funcionalidad: Renderiza un texto con colores animados.
+        Parámetros:
+            - text: El texto a renderizar.
+            - font: Fuente para renderizar el texto.
+            - colors: Lista de colores para cada carácter del texto.
+        Retorna:
+            - Una lista de superficies de texto renderizadas con los colores especificados.
+        """
+        surfaces = []
+        for i, char in enumerate(text):
+            color = colors[i % len(colors)]
+            surf = font.render(char, True, color)
+            surfaces.append(surf)
+        return surfaces
     
+
+   
 class InicialMenu:
     def __init__(self):
         self.background = None
