@@ -3,21 +3,21 @@ import pygame
 import random
 from Graphics import *
 from Graphics import GraphicsParty
+import os
 
 SCORES_FILE = "scores.txt"
 class TetrisGame:
     def __init__(self, screen, mode=0):
-        self.screen = screen
-        self.board = [[(0, 0, 0)] * 10 for _ in range(20)]  # tablero de 20x10
+        self.cell_size = 30
+        self.cols = 10
+        self.rows = 20
+        self.board = [[(0, 0, 0)] * self.cols for _ in range(self.rows)]  # tablero de 20x10
         self.block_constructor = BlockConstructor()
         self.down_key_held = False # Parte de la funcionalidad de mantener presionada la tecla hacia abajo
         self.down_key_start_time = 0 #Tiempo de inicio de la tecla hacia abajo
         self.down_key_last_scored = 0 #Último tiempo en el que se sumó un punto
         self.down_score_interval = 50  # Cada 50 ms sumamos 1 punto
         self.fall_time = 0
-        self.cell_size = 30
-        self.cols = 10
-        self.rows = 20
         self.score=0
         
         self.spawn_piece()
@@ -27,15 +27,9 @@ class TetrisGame:
 
         self.screen_width, self.screen_height = self.screen.get_size()
         self.offset_x = (self.screen_width - self.board_width) // 2  - 100
-        self.offset_y = (self.screen_height - self.board_height) // 2
+        self.offset_y =(self.screen_height - self.board_height) // 2
         
-        self.celebration_frames = [
-            pygame.image.load(f"imagens/russianDancer/frame_{i}.gif").convert_alpha() for i in range(29)  # Cargar 29 frames de la animación
-        ]
-        self.celebration_index = 0
-        self.show_celebration = False
-        self.celebration_timer = 0
-        self.celebration_duration = 1000  # duración en milisegundos
+        
     
         if mode == 1:
             self.fall_speed = 500
@@ -44,6 +38,11 @@ class TetrisGame:
         if mode == 2:
             self.add_initial_obstacles()
         
+        self.graphics = TetrisGraphics(
+            rows=self.rows,
+            cols=self.cols,
+            cell_size=self.cell_size
+        )
         
     def handle_down_key_hold(self):
         """
@@ -147,121 +146,39 @@ class TetrisGame:
         trimmed = list(zip(*trimmed_columns))
         
         return [list(row) for row in trimmed]
+
+    def get_board_state(self):
+        """
+        Funcionalidad: Obtiene el estado actual del tablero.
+        Parámetros:
+            - None
+        Retorna:
+            - Una lista de listas que representa el estado actual del tablero.
+        """
+        return [row[:] for row in self.board]
     
-    
-        
-    def draw(self):
-        self.screen.fill((20, 20, 40))  # Color de fondo general
-
-        # Dibujar el área del tablero como un bloque negro
-        pygame.draw.rect(
-            self.screen,
-            (0, 0, 0),  # tablero negro
-            (
-                self.offset_x,
-                self.offset_y,
-                self.board_width,
-                self.board_height
-            )
-        )
-
-        # Dibujar la cuadrícula
-        for x in range(self.cols + 1):
-            pygame.draw.line(
-                self.screen, (50, 50, 50),
-                (self.offset_x + x * self.cell_size, self.offset_y),
-                (self.offset_x + x * self.cell_size, self.offset_y + self.board_height)
-            )
-
-        for y in range(self.rows + 1):
-            pygame.draw.line(
-                self.screen, (50, 50, 50),
-                (self.offset_x, self.offset_y + y * self.cell_size),
-                (self.offset_x + self.board_width, self.offset_y + y * self.cell_size)
-            )
-
+    def ghost_piece(self):
         # Posición fantasma
         ghost_piece = self.current_piece.copy()
         while self.valid_move(ghost_piece.get_current_shape(),ghost_piece.x, ghost_piece.y + 1):
             ghost_piece.y += 1
-
-        ghost_shape = ghost_piece.get_current_shape()
-        for i, row in enumerate(ghost_shape):
-            for j, cell in enumerate(row):
-                if cell == '0':
-                    x, y = self.to_screen_coords(ghost_piece.x + j, ghost_piece.y + i)
-                    pygame.draw.rect(self.screen, ghost_piece.color, (x, y, self.cell_size, self.cell_size), 1)
-
-        # Piezas fijas en el tablero
-        for y in range(20):
-            for x in range(10):
-                color = self.board[y][x]
-                if color != (0, 0, 0):
-                    screen_x, screen_y = self.to_screen_coords(x, y)
-                    pygame.draw.rect(self.screen, color, (screen_x, screen_y, self.cell_size, self.cell_size))
-                    pygame.draw.rect(self.screen, (255, 255, 255), (screen_x, screen_y, self.cell_size, self.cell_size), 2)
-
-        # Pieza actual
-        shape = self.current_piece.get_current_shape()
-        for i, row in enumerate(shape):
-            for j, cell in enumerate(row):
-                if cell == '0':
-                    x, y = self.to_screen_coords(self.current_piece.x + j, self.current_piece.y + i)
-                    pygame.draw.rect(self.screen, self.current_piece.color, (x, y, self.cell_size, self.cell_size))
-                    pygame.draw.rect(self.screen, (0, 0, 0), (x, y, self.cell_size, self.cell_size), 2)
+        return ghost_piece
+        
 
         
+    def draw(self):
+
+        ghost_piece=self.ghost_piece()
+        aux_board = self.get_board_state()
+
+        # Dibujar solo las partes del tablero
+        self.graphics.draw_board()
+        self.graphics.draw_ghost_piece(ghost_piece)
+        self.graphics.draw_board_pieces(aux_board)
+        self.graphics.draw_current_piece(self.current_piece)
+        
+    
        
-        current_time = pygame.time.get_ticks()
-        if self.show_celebration:
-            frame_duration = 150
-            total_frames = len(self.celebration_frames) * 2
-            elapsed = current_time - self.celebration_timer
-            current_frame = elapsed // frame_duration
-            if current_frame >= total_frames:
-                self.show_celebration = False
-                self.celebration_index = 0
-            else:
-                self.celebration_index = current_frame % len(self.celebration_frames)
-
-        frame = self.celebration_frames[self.celebration_index]
-        # Tamaño del recuadro contenedor (más alto para incluir imagen + puntuación)
-        # === CONFIGURACIÓN DE POSICIONES ===
-        right_margin = 20
-        top_start_y = 60  # Más arriba
-        container_width = 150
-
-        # === BLOQUE DE ANIMACIÓN ===
-        animation_container_height = 120
-        animation_x = self.screen_width - container_width - right_margin
-        animation_y = top_start_y
-        animation_rect = pygame.Rect(animation_x, animation_y, container_width, animation_container_height)
-
-        # Fondo y borde del recuadro de animación
-        pygame.draw.rect(self.screen, (240, 240, 240), animation_rect, border_radius=12)
-        pygame.draw.rect(self.screen, (0, 0, 0), animation_rect, 3, border_radius=12)
-
-        # Imagen de celebración
-        frame_size = 100
-        frame_x = animation_x + (container_width - frame_size) // 2
-        frame_y = animation_y + 10
-
-        # Animación
-        current_time = pygame.time.get_ticks()
-        if self.show_celebration:
-            frame_duration = 150
-            total_frames = len(self.celebration_frames) * 2
-            elapsed = current_time - self.celebration_timer
-            current_frame = elapsed // frame_duration
-            if current_frame >= total_frames:
-                self.show_celebration = False
-                self.celebration_index = 0
-            else:
-                self.celebration_index = current_frame % len(self.celebration_frames)
-
-        frame = self.celebration_frames[self.celebration_index]
-        scaled_frame = pygame.transform.scale(frame, (frame_size, frame_size))
-        self.screen.blit(scaled_frame, (frame_x, frame_y))
 
         # === BLOQUE DE PUNTUACIÓN ===
         font_score = pygame.font.Font("other/PressStart2P.ttf", 14)
@@ -526,7 +443,59 @@ class TetrisGame:
         """
         return any(self.board[1][x] != (0, 0, 0) for x in range(10))
 
-def get_top_scores(filename=SCORES_FILE, count=5):
+
+class ConnectorTXT:
+    def __init__(self, scores_file="scores.txt"):
+        """
+        Funcionalidad: Inicializa la clase ConnectorTXT.
+        Parámetros:
+            - None
+        Retorna:
+            - None
+        """
+        self.scores_file = scores_file
+    def load_scores(self):
+        """ 
+            Funcionalidad: Carga las puntuaciones desde el archivo SCORES_FILE.
+            Parámetros:
+
+            Retorna:
+                - Si el archivo de SCORES_FILE, Una lista de listas con el formato [["Jugador", "1200"], ...]
+                - Si el archivo no existe, retorna una lista vacía.
+        """
+        if not os.path.exists(self.scores_file):
+            # El archivo no existe, retornar una lista vacía
+            return []
+        with open(self.scores_file, "r") as f:
+            lines = f.readlines()
+            return [line.strip().split(",") for line in lines] 
+        
+    def save_score(self,name, score):
+        """
+            Funcionalidad: Guarda la puntuación del jugador en el archivo SCORES_FILE.
+            Parámetros:
+                - name: El nombre del jugador.
+                - score: La puntuación del jugador.
+            Retorna:
+                - None
+        """
+        with open(self.scores_file, "a") as f:
+            # Si no existe el archivo, se crea automáticamente
+            #TODO Comprobar que no se repita el nombre
+            f.write(f"{name},{score}\n")
+
+    def get_sorted_scores(self):
+        """
+            Funcionalidad: Obtiene las puntuaciones ordenadas desde el archivo SCORES_FILE.
+            Parámetros:
+                - None
+            Retorna:
+                - Una lista de las puntuaciones 5 puntuaciones más altas ordenadas de mayor a menor.
+        """
+        scores = self.load_scores()
+        return sorted(scores, key=lambda x: int(x[1]), reverse=True)[:5]  # top 5
+
+    def get_top_scores(self, count=5):
         """
         Funcionalidad: Obtiene las puntuaciones más altas desde un archivo.
         Parámetros:
@@ -536,7 +505,7 @@ def get_top_scores(filename=SCORES_FILE, count=5):
             - Una lista de las puntuaciones más altas, cada una en formato "Jugador,Puntuación".
         """ 
         try:
-            with open(filename, "r") as f:
+            with open(self.scores_file, "r") as f:
                 scores = [line.strip() for line in f.readlines()]
             return sorted(scores, key=lambda x: int(x.split(",")[1]), reverse=True)[:count]
         except FileNotFoundError:

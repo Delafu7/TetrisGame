@@ -1,11 +1,11 @@
 import pygame
-import os
 from BaseGame import TetrisGame
 from Graphics import *
 from Graphics import updateDisplay
+from BaseGame import ConnectorTXT
 
 SCORES_FILE = "scores.txt"
-
+connectorTxt= ConnectorTXT(SCORES_FILE)
 def get_player_name():
     """
     Funcionalidad: Permite al jugador ingresar su nombre después de perder.
@@ -48,46 +48,7 @@ def get_player_name():
     return name
 
 
-def load_scores():
-    """ 
-        Funcionalidad: Carga las puntuaciones desde el archivo SCORES_FILE.
-        Parámetros:
 
-        Retorna:
-            - Si el archivo de SCORES_FILE, Una lista de listas con el formato [["Jugador", "1200"], ...]
-            - Si el archivo no existe, retorna una lista vacía.
-    """
-    if not os.path.exists(SCORES_FILE):
-        # El archivo no existe, retornar una lista vacía
-        return []
-    with open(SCORES_FILE, "r") as f:
-        lines = f.readlines()
-        return [line.strip().split(",") for line in lines] 
-    
-def save_score(name, score):
-    """
-        Funcionalidad: Guarda la puntuación del jugador en el archivo SCORES_FILE.
-        Parámetros:
-            - name: El nombre del jugador.
-            - score: La puntuación del jugador.
-        Retorna:
-            - None
-    """
-    with open(SCORES_FILE, "a") as f:
-        # Si no existe el archivo, se crea automáticamente
-        #TODO Comprobar que no se repita el nombre
-        f.write(f"{name},{score}\n")
-
-def get_sorted_scores():
-    """
-        Funcionalidad: Obtiene las puntuaciones ordenadas desde el archivo SCORES_FILE.
-        Parámetros:
-            - None
-        Retorna:
-            - Una lista de las puntuaciones 5 puntuaciones más altas ordenadas de mayor a menor.
-    """
-    scores = load_scores()
-    return sorted(scores, key=lambda x: int(x[1]), reverse=True)[:5]  # top 5
 
 def show_start_menu():
     """
@@ -108,7 +69,7 @@ def show_start_menu():
         #--MOSTRAR MODOS DE JUEGO--#
         menu.show_modes()
         #--MOSTRAR PUNTUACIONES--
-        top_scores = get_sorted_scores()
+        top_scores = connectorTxt.get_sorted_scores()
         menu.show_scores(top_scores)
         #Actualizar pantalla
 
@@ -222,7 +183,7 @@ def run_game(screen,mode=0):
             pygame.mixer.music.stop()
             name = get_player_name()
             if len(name)>0:
-                save_score(name, game.score)
+                connectorTxt.save_score(name, game.score)
             running = False
         # Controlar FPS
         clock.tick(10)

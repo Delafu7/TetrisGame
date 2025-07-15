@@ -66,6 +66,7 @@ class GraphicsParty:
             b = int(127 * math.sin(t + i + 4) + 128)
             colors.append((r, g, b))
         return colors
+    
     def render_multicolor_text(text, font, colors):
         """
         Funcionalidad: Renderiza un texto con colores animados.
@@ -84,7 +85,158 @@ class GraphicsParty:
         return surfaces
     
 
-   
+class TetrisGraphics:
+    def __init__(self, rows=20, cols=10, cell_size=30):
+        self.rows = rows
+        self.cols = cols
+        self.cell_size = cell_size
+        self.board_width = cols * cell_size
+        self.board_height = rows * cell_size
+        self.offset_x = (screen_width - self.board_width) // 2
+        self.offset_y = (screen_height - self.board_height) // 2
+
+        # --PARTE DE LA IMAGEN--
+        self.celebration_frames = [
+            pygame.image.load(f"imagens/russianDancer/frame_{i}.gif").convert_alpha() for i in range(29)  # Cargar 29 frames de la animación
+        ]
+        self.celebration_index = 0
+        self.show_celebration = False
+        self.celebration_timer = 0
+        self.celebration_duration = 1000  # duración en milisegundos
+
+        
+    def draw_board(self):
+        """Funcionalidad: Dibuja el tablero de Tetris con una cuadrícula.
+        Parámetros
+            - self: Instancia de la clase TetrisGraphics.
+        Retorna:
+            - None
+        """
+        self.screen.fill((20, 20, 40))  # Color de fondo general
+
+        # Dibujar el área del tablero como un bloque negro
+        pygame.draw.rect(
+            self.screen,
+            (0, 0, 0),  # tablero negro
+            (
+                self.offset_x,
+                self.offset_y,
+                self.board_width,
+                self.board_height
+            )
+        )
+
+        # Dibujar la cuadrícula
+        for x in range(self.cols + 1):
+            pygame.draw.line(
+                self.screen, (50, 50, 50),
+                (self.offset_x + x * self.cell_size, self.offset_y),
+                (self.offset_x + x * self.cell_size, self.offset_y + self.board_height)
+            )
+
+        for y in range(self.rows + 1):
+            pygame.draw.line(
+                self.screen, (50, 50, 50),
+                (self.offset_x, self.offset_y + y * self.cell_size),
+                (self.offset_x + self.board_width, self.offset_y + y * self.cell_size)
+            )
+
+    def draw_ghost_piece(self, ghost_piece):
+        """
+        Funcionalidad: Dibuja la pieza fantasma en el tablero.
+        Parámetros:
+            - ghost_piece: Instancia de la pieza fantasma.
+        Retorna:
+            - None  
+        """
+        ghost_shape = ghost_piece.get_current_shape()
+        for i, row in enumerate(ghost_shape):
+            for j, cell in enumerate(row):
+                if cell == '0':
+                    x, y = self.to_screen_coords(ghost_piece.x + j, ghost_piece.y + i)
+                    pygame.draw.rect(self.screen, ghost_piece.color, (x, y, self.cell_size, self.cell_size), 1)
+    
+    def draw_board_pieces(self, board):
+        """
+        Funcionalidad: Dibuja las piezas fijas en el tablero.
+        Parámetros:     
+            - board: Lista de listas que representa el estado del tablero.
+        Retorna:
+            - None
+        """
+        # Piezas fijas en el tablero
+        for y in range(self.rows):
+            for x in range(self.cols):
+                color = board[y][x]
+                if color != (0, 0, 0):
+                    screen_x, screen_y = self.to_screen_coords(x, y)
+                    pygame.draw.rect(self.screen, color, (screen_x, screen_y, self.cell_size, self.cell_size))
+                    pygame.draw.rect(self.screen, (255, 255, 255), (screen_x, screen_y, self.cell_size, self.cell_size), 2)
+
+    def draw_current_piece(self, piece):
+        """
+        Funcionalidad: Dibuja la pieza actual en el tablero.
+        Parámetros:
+            - piece: Instancia de la pieza actual.
+        Retorna:
+            - None
+        """
+        # Pieza actual
+        shape = self.current_piece.get_current_shape()
+        for i, row in enumerate(shape):
+            for j, cell in enumerate(row):
+                if cell == '0':
+                    x, y = self.to_screen_coords(piece.x + j, piece.y + i)
+                    pygame.draw.rect(self.screen, piece.color, (x, y, self.cell_size, self.cell_size))
+                    pygame.draw.rect(self.screen, (0, 0, 0), (x, y, self.cell_size, self.cell_size), 2)
+
+    def moving_animation(self):
+        """
+        Funcionalidad: Muestra una animación de celebración al completar una línea.
+        Parámetros:
+            - None
+        Retorna:
+            - None
+        """
+        
+     # === CONFIGURACIÓN DE POSICIONES ===
+     
+        right_margin = 20
+        top_start_y = 60  
+        container_width = 150
+
+        # === BLOQUE DE ANIMACIÓN ===
+        animation_container_height = 120
+        animation_x = screen_width - container_width - right_margin
+        animation_y = top_start_y
+        animation_rect = pygame.Rect(animation_x, animation_y, container_width, animation_container_height)
+
+        # Fondo y borde del recuadro de animación
+        pygame.draw.rect(self.screen, (240, 240, 240), animation_rect, border_radius=12)
+        pygame.draw.rect(self.screen, (0, 0, 0), animation_rect, 3, border_radius=12)
+
+        # Imagen de celebración
+        frame_size = 100
+        frame_x = animation_x + (container_width - frame_size) // 2
+        frame_y = animation_y + 10
+
+        # Animación
+        current_time = pygame.time.get_ticks()
+        if self.show_celebration:
+            frame_duration = 150
+            total_frames = len(self.celebration_frames) * 2
+            elapsed = current_time - self.celebration_timer
+            current_frame = elapsed // frame_duration
+            if current_frame >= total_frames:
+                self.show_celebration = False
+                self.celebration_index = 0
+            else:
+                self.celebration_index = current_frame % len(self.celebration_frames)
+
+        frame = self.celebration_frames[self.celebration_index]
+        scaled_frame = pygame.transform.scale(frame, (frame_size, frame_size))
+        self.screen.blit(scaled_frame, (frame_x, frame_y))
+
 class InicialMenu:
     def __init__(self):
         self.background = None
@@ -111,7 +263,7 @@ class InicialMenu:
         screen.blit(logo, (screen.get_width() // 2 - logo.get_width() // 2, 50)) # Dibujar logo centrado
 
         #Base para posicionar el contenido debajo del logo
-        self.base_y = 50 + self.logo.get_height() + 50    
+        self.base_y = 50 + self.logo.get_height() + 50
     def show_modes(self):
 
         # Dibujar fondo y logo
