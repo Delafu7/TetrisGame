@@ -1,13 +1,11 @@
 from BlockConstructor import BlockConstructor
 import pygame
 import random
-from Graphics import *
-from Graphics import GraphicsParty
 import os
 
 SCORES_FILE = "scores.txt"
 class TetrisGame:
-    def __init__(self, screen, mode=0):
+    def __init__(self,screen, mode=0):
         self.cell_size = 30
         self.cols = 10
         self.rows = 20
@@ -25,7 +23,7 @@ class TetrisGame:
         self.board_width = self.cols * self.cell_size
         self.board_height = self.rows * self.cell_size
 
-        self.screen_width, self.screen_height = self.screen.get_size()
+        self.screen_width, self.screen_height = screen.get_size()
         self.offset_x = (self.screen_width - self.board_width) // 2  - 100
         self.offset_y =(self.screen_height - self.board_height) // 2
         
@@ -38,11 +36,6 @@ class TetrisGame:
         if mode == 2:
             self.add_initial_obstacles()
         
-        self.graphics = TetrisGraphics(
-            rows=self.rows,
-            cols=self.cols,
-            cell_size=self.cell_size
-        )
         
     def handle_down_key_hold(self):
         """
@@ -166,141 +159,7 @@ class TetrisGame:
         
 
         
-    def draw(self):
-
-        ghost_piece=self.ghost_piece()
-        aux_board = self.get_board_state()
-
-        # Dibujar solo las partes del tablero
-        self.graphics.draw_board()
-        self.graphics.draw_ghost_piece(ghost_piece)
-        self.graphics.draw_board_pieces(aux_board)
-        self.graphics.draw_current_piece(self.current_piece)
-        
-    
-       
-
-        # === BLOQUE DE PUNTUACIÓN ===
-        font_score = pygame.font.Font("other/PressStart2P.ttf", 14)
-
-        # Crear texto multicolor
-        padded_score = str(self.score).rjust(6, " ")
-        score_string = f"PUNTOS: {padded_score}"
-        rainbow_colors_score = GraphicsParty.get_animated_rainbow_colors(len(score_string))
-        score_text_parts = GraphicsParty.render_multicolor_text(score_string, font_score, rainbow_colors_score)
-
-        # Calcular tamaño total del texto
-        text_width = sum(surf.get_width() for surf in score_text_parts)
-        text_height = max(surf.get_height() for surf in score_text_parts)
-
-        # Recuadro
-        score_box_padding_x = 10
-        score_box_padding_y = 8
-        score_box_width = text_width + 2 * score_box_padding_x
-        score_box_height = text_height + 2 * score_box_padding_y
-
-        score_box_x = self.screen_width - score_box_width - 20
-        score_box_y = animation_y + animation_container_height + 20  # Más arriba, pero con margen
-
-        score_box = pygame.Rect(score_box_x, score_box_y, score_box_width, score_box_height)
-        pygame.draw.rect(self.screen, (255, 255, 255), score_box, border_radius=6)
-        pygame.draw.rect(self.screen, (0, 0, 0), score_box, 2, border_radius=6)
-
-        # Dibujar el texto multicolor centrado
-        start_x = score_box.centerx - (text_width // 2)
-        y = score_box.centery - (text_height // 2)
-        for surf in score_text_parts:
-            self.screen.blit(surf, (start_x, y))
-            start_x += surf.get_width()
-
-        # === BLOQUE TOP 5 ===
-        top_scores = get_top_scores()
-        font_top = pygame.font.Font("other/PressStart2P.ttf", 12)
-        line_height = 20
-        padding = 10
-
-        # Recuadro para el top 5
-        top_box_width = 180
-        top_box_height = (len(top_scores) + 1) * line_height + padding * 2
-        top_box_x = self.screen_width - top_box_width - 20
-        top_box_y = self.screen_height - top_box_height - 20
-
-        top_box_rect = pygame.Rect(top_box_x, top_box_y, top_box_width, top_box_height)
-        pygame.draw.rect(self.screen, (245, 245, 245), top_box_rect, border_radius=10)
-        pygame.draw.rect(self.screen, (0, 0, 0), top_box_rect, 2, border_radius=10)
-
-        # Dibujar título
-        title_string = "TOP 5"
-        rainbow_colors_title = GraphicsParty.get_animated_rainbow_colors(len(title_string))
-        title_surfs = GraphicsParty.render_multicolor_text(title_string, font_top, rainbow_colors_title)
-        tx = top_box_x + padding
-        ty = top_box_y + padding
-        for surf in title_surfs:
-            self.screen.blit(surf, (tx, ty))
-            tx += surf.get_width()
-
-       # Dibujar las puntuaciones (solo una vez)
-        for i, score in enumerate(top_scores):
-            score_str = f"{i + 1}.- {score.split(',')[0]}: {score.split(',')[1]}"
-            colors_line = GraphicsParty.get_animated_rainbow_colors(len(score_str))
-            parts = GraphicsParty.render_multicolor_text(score_str, font_top, colors_line)
-            x = top_box_x + padding
-            y = top_box_y + padding + (i + 1) * line_height
-            for surf in parts:
-                self.screen.blit(surf, (x, y))
-                x += surf.get_width()
-
-        # === BLOQUE SIGUIENTES PIEZAS (CENTRO DERECHA) ===
-        next_piece_box_width = 120
-        next_piece_box_height = 100
-        box_padding = 8
-        gap_between_boxes = 30
-        block_size = 20
-
-        font_next = pygame.font.Font("other/PressStart2P.ttf", 12)
-        label_text ="SIGUIENTES:"
-        
-        total_height = 2 * next_piece_box_height + gap_between_boxes + 30  # altura total con etiqueta
-        start_y = (self.screen_height - total_height) // 2
-        start_x = self.screen_width - next_piece_box_width - 60  # margen derecho
-
-        rainbow_colors_next = GraphicsParty.get_animated_rainbow_colors(len(label_text))
-        label_surfs = GraphicsParty.render_multicolor_text(label_text, font_next, rainbow_colors_next)
-
-        x = start_x
-        y = start_y
-        for surf in label_surfs:
-            self.screen.blit(surf, (x, y))
-            x += surf.get_width()
-
-
-        # Dibujar los dos bloques de las próximas piezas
-        for i in range(2):
-            if i >= len(self.next_pieces):
-                break
-
-            piece = self.next_pieces[i]
-            raw_shape = piece.get_current_shape()
-            shape = self.trim_shape(raw_shape)
-
-            box_x = start_x + 20
-            box_y = start_y + 40 + i * (next_piece_box_height + gap_between_boxes)
-            pygame.draw.rect(self.screen, (240, 240, 240), (box_x, box_y, next_piece_box_width, next_piece_box_height), border_radius=6)
-            pygame.draw.rect(self.screen, (0, 0, 0), (box_x, box_y, next_piece_box_width, next_piece_box_height), 2, border_radius=6)
-
-            # Centrar la pieza dentro del recuadro
-            shape_width = len(shape[0]) * block_size
-            shape_height = len(shape) * block_size
-            offset_x = box_x + (next_piece_box_width - shape_width) // 2
-            offset_y = box_y + (next_piece_box_height - shape_height) // 2
-
-            for row_idx, row in enumerate(shape):
-                for col_idx, cell in enumerate(row):
-                    if cell == '0':
-                        rect_x = offset_x + col_idx * block_size
-                        rect_y = offset_y + row_idx * block_size
-                        pygame.draw.rect(self.screen, piece.color, (rect_x, rect_y, block_size, block_size))
-                        pygame.draw.rect(self.screen, (0, 0, 0), (rect_x, rect_y, block_size, block_size), 2)
+   
 
     def to_screen_coords(self, x, y):
         """

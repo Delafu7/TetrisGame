@@ -2,6 +2,7 @@ import pygame
 from BaseGame import TetrisGame
 from Graphics import *
 from Graphics import updateDisplay
+from Graphics import getScreen
 from BaseGame import ConnectorTXT
 
 SCORES_FILE = "scores.txt"
@@ -115,10 +116,11 @@ def party():
         # selectrd_mode = 0 -> Modo Clásico
         # selected_mode = 1 -> Modo Rápido
         # selected_mode = 2 -> Modo con Obstáculos
-        run_game(screen, selected_mode)
+        run_game(selected_mode)
 
 
-def run_game(screen,mode=0):
+        
+def run_game(mode=0):
     """
         Funcionalidad: Ejecuta el juego Tetris con el modo seleccionado.
         Parámetros:
@@ -129,7 +131,16 @@ def run_game(screen,mode=0):
             - None
     """
     # Mostrar menú y obtener modo elegido
-    game = TetrisGame(screen, mode=mode)  
+    print(f"Modo seleccionado: {mode}")
+    
+    
+    screen = getScreen()
+    game = TetrisGame(screen,mode=mode) 
+    graphics = TetrisGraphics(
+            rows=game.rows,
+            cols=game.cols,
+            cell_size=game.cell_size
+        )
 
     # Poner música de fondo
     GraphicsParty.put_music()
@@ -171,9 +182,22 @@ def run_game(screen,mode=0):
         # Manejar teclas de movimiento hacia abajo
         game.update()
         game.handle_down_key_hold()
-
+        
         # Actualizar los visuales del juego
-        game.draw()
+        ghost_piece=game.ghost_piece()
+        aux_board = game.get_board_state()
+
+        # Dibujar solo las partes del tablero
+        graphics.draw_board()
+        graphics.draw_ghost_piece(ghost_piece)
+        graphics.draw_board_pieces(aux_board)
+        graphics.draw_current_piece(game.current_piece)
+        graphics.my_punctuation(game.score)
+        
+        # === BLOQUE TOP 5 ===
+        top_scores = connectorTxt.get_top_scores()
+        graphics.show_top5(top_scores)
+        graphics.show_next_piece(game.next_pieces)
 
         # Actualizar la pantalla
         updateDisplay()

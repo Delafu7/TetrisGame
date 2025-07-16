@@ -112,11 +112,11 @@ class TetrisGraphics:
         Retorna:
             - None
         """
-        self.screen.fill((20, 20, 40))  # Color de fondo general
+        screen.fill((20, 20, 40))  # Color de fondo general
 
         # Dibujar el área del tablero como un bloque negro
         pygame.draw.rect(
-            self.screen,
+            screen,
             (0, 0, 0),  # tablero negro
             (
                 self.offset_x,
@@ -129,14 +129,14 @@ class TetrisGraphics:
         # Dibujar la cuadrícula
         for x in range(self.cols + 1):
             pygame.draw.line(
-                self.screen, (50, 50, 50),
+                screen, (50, 50, 50),
                 (self.offset_x + x * self.cell_size, self.offset_y),
                 (self.offset_x + x * self.cell_size, self.offset_y + self.board_height)
             )
 
         for y in range(self.rows + 1):
             pygame.draw.line(
-                self.screen, (50, 50, 50),
+                screen, (50, 50, 50),
                 (self.offset_x, self.offset_y + y * self.cell_size),
                 (self.offset_x + self.board_width, self.offset_y + y * self.cell_size)
             )
@@ -154,7 +154,7 @@ class TetrisGraphics:
             for j, cell in enumerate(row):
                 if cell == '0':
                     x, y = self.to_screen_coords(ghost_piece.x + j, ghost_piece.y + i)
-                    pygame.draw.rect(self.screen, ghost_piece.color, (x, y, self.cell_size, self.cell_size), 1)
+                    pygame.draw.rect(screen, ghost_piece.color, (x, y, self.cell_size, self.cell_size), 1)
     
     def draw_board_pieces(self, board):
         """
@@ -170,8 +170,8 @@ class TetrisGraphics:
                 color = board[y][x]
                 if color != (0, 0, 0):
                     screen_x, screen_y = self.to_screen_coords(x, y)
-                    pygame.draw.rect(self.screen, color, (screen_x, screen_y, self.cell_size, self.cell_size))
-                    pygame.draw.rect(self.screen, (255, 255, 255), (screen_x, screen_y, self.cell_size, self.cell_size), 2)
+                    pygame.draw.rect(screen, color, (screen_x, screen_y, self.cell_size, self.cell_size))
+                    pygame.draw.rect(screen, (255, 255, 255), (screen_x, screen_y, self.cell_size, self.cell_size), 2)
 
     def draw_current_piece(self, piece):
         """
@@ -187,8 +187,8 @@ class TetrisGraphics:
             for j, cell in enumerate(row):
                 if cell == '0':
                     x, y = self.to_screen_coords(piece.x + j, piece.y + i)
-                    pygame.draw.rect(self.screen, piece.color, (x, y, self.cell_size, self.cell_size))
-                    pygame.draw.rect(self.screen, (0, 0, 0), (x, y, self.cell_size, self.cell_size), 2)
+                    pygame.draw.rect(screen, piece.color, (x, y, self.cell_size, self.cell_size))
+                    pygame.draw.rect(screen, (0, 0, 0), (x, y, self.cell_size, self.cell_size), 2)
 
     def moving_animation(self):
         """
@@ -212,8 +212,8 @@ class TetrisGraphics:
         animation_rect = pygame.Rect(animation_x, animation_y, container_width, animation_container_height)
 
         # Fondo y borde del recuadro de animación
-        pygame.draw.rect(self.screen, (240, 240, 240), animation_rect, border_radius=12)
-        pygame.draw.rect(self.screen, (0, 0, 0), animation_rect, 3, border_radius=12)
+        pygame.draw.rect(screen, (240, 240, 240), animation_rect, border_radius=12)
+        pygame.draw.rect(screen, (0, 0, 0), animation_rect, 3, border_radius=12)
 
         # Imagen de celebración
         frame_size = 100
@@ -235,8 +235,136 @@ class TetrisGraphics:
 
         frame = self.celebration_frames[self.celebration_index]
         scaled_frame = pygame.transform.scale(frame, (frame_size, frame_size))
-        self.screen.blit(scaled_frame, (frame_x, frame_y))
+        screen.blit(scaled_frame, (frame_x, frame_y))
+    
+    def my_punctuation(self, score):
+        # === BLOQUE DE PUNTUACIÓN ===
+        font_score = pygame.font.Font("other/PressStart2P.ttf", 14)
 
+        # Crear texto multicolor
+        padded_score = str(score).rjust(6, " ")
+        score_string = f"PUNTOS: {padded_score}"
+        rainbow_colors_score = GraphicsParty.get_animated_rainbow_colors(len(score_string))
+        score_text_parts = GraphicsParty.render_multicolor_text(score_string, font_score, rainbow_colors_score)
+
+        # Calcular tamaño total del texto
+        text_width = sum(surf.get_width() for surf in score_text_parts)
+        text_height = max(surf.get_height() for surf in score_text_parts)
+
+        # Recuadro
+        score_box_padding_x = 10
+        score_box_padding_y = 8
+        score_box_width = text_width + 2 * score_box_padding_x
+        score_box_height = text_height + 2 * score_box_padding_y
+
+        score_box_x = self.screen_width - score_box_width - 20
+        score_box_y = 60 + 120 + 20  
+
+        score_box = pygame.Rect(score_box_x, score_box_y, score_box_width, score_box_height)
+        pygame.draw.rect(screen, (255, 255, 255), score_box, border_radius=6)
+        pygame.draw.rect(screen, (0, 0, 0), score_box, 2, border_radius=6)
+
+        # Dibujar el texto multicolor centrado
+        start_x = score_box.centerx - (text_width // 2)
+        y = score_box.centery - (text_height // 2)
+        for surf in score_text_parts:
+            screen.blit(surf, (start_x, y))
+            start_x += surf.get_width()
+
+    def show_top5(self, top_scores):
+        """
+        Funcionalidad: Muestra las 5 mejores puntuaciones en la pantalla.
+        Parámetros:
+            - top_scores: Lista de tuplas con los nombres y puntuaciones.
+        Retorna:
+            - None
+        """
+        font_top = pygame.font.Font("other/PressStart2P.ttf", 12)
+        line_height = 20
+        padding = 10
+
+        # Recuadro para el top 5
+        top_box_width = 180
+        top_box_height = (len(top_scores) + 1) * line_height + padding * 2
+        top_box_x = self.screen_width - top_box_width - 20
+        top_box_y = self.screen_height - top_box_height - 20
+
+        top_box_rect = pygame.Rect(top_box_x, top_box_y, top_box_width, top_box_height)
+        pygame.draw.rect(screen, (245, 245, 245), top_box_rect, border_radius=10)
+        pygame.draw.rect(screen, (0, 0, 0), top_box_rect, 2, border_radius=10)
+
+        # Dibujar título
+        title_string = "TOP 5"
+        rainbow_colors_title = GraphicsParty.get_animated_rainbow_colors(len(title_string))
+        title_surfs = GraphicsParty.render_multicolor_text(title_string, font_top, rainbow_colors_title)
+        tx = top_box_x + padding
+        ty = top_box_y + padding
+        for surf in title_surfs:
+            screen.blit(surf, (tx, ty))
+            tx += surf.get_width()
+
+        # Dibujar las puntuaciones 
+        for i, score in enumerate(top_scores):
+            score_str = f"{i + 1}.- {score.split(',')[0]}: {score.split(',')[1]}"
+            colors_line = GraphicsParty.get_animated_rainbow_colors(len(score_str))
+            parts = GraphicsParty.render_multicolor_text(score_str, font_top, colors_line)
+            x = top_box_x + padding
+            y = top_box_y + padding + (i + 1) * line_height
+            for surf in parts:
+                screen.blit(surf, (x, y))
+                x += surf.get_width()
+    def show_next_piece(self, next_pieces):
+                
+        next_piece_box_width = 120
+        next_piece_box_height = 100
+        
+        gap_between_boxes = 30
+        block_size = 20
+
+        font_next = pygame.font.Font("other/PressStart2P.ttf", 12)
+        label_text ="SIGUIENTES:"
+        
+        total_height = 2 * next_piece_box_height + gap_between_boxes + 30  # altura total con etiqueta
+        start_y = (self.screen_height - total_height) // 2
+        start_x = self.screen_width - next_piece_box_width - 60  # margen derecho
+
+        rainbow_colors_next = GraphicsParty.get_animated_rainbow_colors(len(label_text))
+        label_surfs = GraphicsParty.render_multicolor_text(label_text, font_next, rainbow_colors_next)
+
+        x = start_x
+        y = start_y
+        for surf in label_surfs:
+            screen.blit(surf, (x, y))
+            x += surf.get_width()
+
+
+        # Dibujar los dos bloques de las próximas piezas
+        for i in range(2):
+            if i >= len(next_pieces):
+                break
+
+            piece = next_pieces[i]
+            raw_shape = piece.get_current_shape()
+            shape = self.trim_shape(raw_shape)
+
+            box_x = start_x + 20
+            box_y = start_y + 40 + i * (next_piece_box_height + gap_between_boxes)
+            pygame.draw.rect(screen, (240, 240, 240), (box_x, box_y, next_piece_box_width, next_piece_box_height), border_radius=6)
+            pygame.draw.rect(screen, (0, 0, 0), (box_x, box_y, next_piece_box_width, next_piece_box_height), 2, border_radius=6)
+
+            # Centrar la pieza dentro del recuadro
+            shape_width = len(shape[0]) * block_size
+            shape_height = len(shape) * block_size
+            offset_x = box_x + (next_piece_box_width - shape_width) // 2
+            offset_y = box_y + (next_piece_box_height - shape_height) // 2
+
+            for row_idx, row in enumerate(shape):
+                for col_idx, cell in enumerate(row):
+                    if cell == '0':
+                        rect_x = offset_x + col_idx * block_size
+                        rect_y = offset_y + row_idx * block_size
+                        pygame.draw.rect(screen, piece.color, (rect_x, rect_y, block_size, block_size))
+                        pygame.draw.rect(screen, (0, 0, 0), (rect_x, rect_y, block_size, block_size), 2)
 class InicialMenu:
     def __init__(self):
         self.background = None
@@ -326,6 +454,7 @@ class InicialMenu:
             score_render = score_font.render(score_text, True, (255, 255, 255))
             score_rect = score_render.get_rect(center=(screen.get_width() // 2, score_title_rect.bottom + 10 + i * 30))
             screen.blit(score_render, score_rect)
+        
     
     def getModes(self):
         return [i for i in range(0,len(self.modes))]
@@ -333,5 +462,5 @@ class InicialMenu:
 def updateDisplay():
     pygame.display.flip()
 
-    
-    
+def getScreen():
+    return screen
