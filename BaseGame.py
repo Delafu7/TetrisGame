@@ -5,7 +5,7 @@ import os
 
 SCORES_FILE = "scores.txt"
 class TetrisGame:
-    def __init__(self,screen, mode=0):
+    def __init__(self,screen):
         self.cell_size = 30
         self.cols = 10
         self.rows = 20
@@ -29,14 +29,23 @@ class TetrisGame:
         
         
     
+        
+    def set_mode(self, mode):
+        """
+        Funcionalidad: Establece el modo de juego.
+        Parámetros:
+            - mode: Modo de juego (0, 1 o 2).
+        Retorna:
+            - None
+        """
         if mode == 1:
             self.fall_speed = 500
-        else:
+        elif mode == 2:
             self.fall_speed = 1000
-        if mode == 2:
             self.add_initial_obstacles()
-        
-        
+        else:
+            self.fall_speed = 1000 
+
     def handle_down_key_hold(self):
         """
         Funcionalidad: Maneja la lógica de mantener presionada la tecla hacia abajo.
@@ -47,27 +56,27 @@ class TetrisGame:
         Retorna:
             - None
         """
-        # Verifica si la tecla hacia abajo está presionada
-        keys = pygame.key.get_pressed()
-        if keys[pygame.K_DOWN]:
-            # Si la tecla está presionada, actualiza el tiempo
-            now = pygame.time.get_ticks()
-            if not self.down_key_held:
-                # Si la tecla no estaba presionada, inicia el conteo
-                # y marca el tiempo de inicio y el último tiempo puntuado
-                self.down_key_held = True
-                self.down_key_start_time = now
-                self.down_key_last_scored = now
-            else:
-                # Agrega puntos por cada intervalo completado
-                while now - self.down_key_last_scored >= self.down_score_interval:
-                    self.score += 1
-                    self.down_key_last_scored += self.down_score_interval
 
-                # Hace que la pieza baje constantemente
-                self.move_down()
+        
+        # Verifica si la tecla hacia abajo está presionada
+       
+        # Si la tecla está presionada, actualiza el tiempo
+        now = pygame.time.get_ticks()
+        if not self.down_key_held:
+            # Si la tecla no estaba presionada, inicia el conteo
+            # y marca el tiempo de inicio y el último tiempo puntuado
+            self.down_key_held = True
+            self.down_key_start_time = now
+            self.down_key_last_scored = now
         else:
-            self.down_key_held = False
+            # Agrega puntos por cada intervalo completado
+            while now - self.down_key_last_scored >= self.down_score_interval:
+                self.score += 1
+                self.down_key_last_scored += self.down_score_interval
+
+            # Hace que la pieza baje constantemente
+            return self.move_down()
+        return 0
 
     def add_initial_obstacles(self):
         """
@@ -108,10 +117,12 @@ class TetrisGame:
         Retorna:
             - None
         """
+        delLines = 0
         current_time = pygame.time.get_ticks()
         if current_time - self.fall_time > self.fall_speed:
-            self.move_down()
+            delLines=self.move_down()
             self.fall_time = current_time
+        return delLines
     
     
     
@@ -159,18 +170,7 @@ class TetrisGame:
         
 
         
-   
 
-    def to_screen_coords(self, x, y):
-        """
-        Funcionalidad: Convierte las coordenadas del tablero a coordenadas de pantalla.
-        Parámetros:
-            - x: Coordenada x en el tablero.
-            - y: Coordenada y en el tablero.
-        Retorna:
-            - Una tupla (screen_x, screen_y) con las coordenadas en la pantalla.
-        """
-        return self.offset_x + x * self.cell_size, self.offset_y + y * self.cell_size
     
             
     def valid_move(self,shape,x, y):
@@ -241,6 +241,7 @@ class TetrisGame:
         Retorna:
             - None
         """
+        line_points = 0
         if self.valid_move(self.current_piece.get_current_shape(),self.current_piece.x,self.current_piece.y + 1):
             self.current_piece.y += 1
         else:
@@ -267,14 +268,12 @@ class TetrisGame:
             elif line_points == 4:
                 self.score += 1200
 
-            # Activar animación si se borró alguna línea
-            if line_points > 0:
-                self.show_celebration = True
-                self.celebration_timer = pygame.time.get_ticks()
-                self.celebration_index = 0
+            
 
             # Actualizar la pieza actual
             self.spawn_piece()
+
+        return line_points
             
     def rotate(self):
         """

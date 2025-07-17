@@ -7,6 +7,13 @@ from BaseGame import ConnectorTXT
 
 SCORES_FILE = "scores.txt"
 connectorTxt= ConnectorTXT(SCORES_FILE)
+screen = getScreen()
+game = TetrisGame(screen) 
+graphics = TetrisGraphics(
+            rows=game.rows,
+            cols=game.cols,
+            cell_size=game.cell_size
+        )
 def get_player_name():
     """
     Funcionalidad: Permite al jugador ingresar su nombre después de perder.
@@ -119,7 +126,28 @@ def party():
         run_game(selected_mode)
 
 
+
+def handle_down_key_hold():
+        """
+        Funcionalidad: Maneja la lógica de mantener presionada la tecla hacia abajo.
+        Permite que la pieza baje constantemente mientras la tecla está presionada,
+        y otorga puntos por cada intervalo de tiempo transcurrido.
+        Parámetros:
+            - None
+        Retorna:
+            - None
+        """
+
         
+        # Verifica si la tecla hacia abajo está presionada
+        keys = pygame.key.get_pressed()
+        if keys[pygame.K_DOWN]:
+            return game.handle_down_key_hold()
+        else:
+            game.down_key_held = False
+
+        return 0
+            
 def run_game(mode=0):
     """
         Funcionalidad: Ejecuta el juego Tetris con el modo seleccionado.
@@ -133,14 +161,8 @@ def run_game(mode=0):
     # Mostrar menú y obtener modo elegido
     print(f"Modo seleccionado: {mode}")
     
-    
-    screen = getScreen()
-    game = TetrisGame(screen,mode=mode) 
-    graphics = TetrisGraphics(
-            rows=game.rows,
-            cols=game.cols,
-            cell_size=game.cell_size
-        )
+    game.set_mode(mode)
+   
 
     # Poner música de fondo
     GraphicsParty.put_music()
@@ -158,6 +180,8 @@ def run_game(mode=0):
     
     pygame.key.set_repeat(200, 100)
     while running:
+        contDelRows = 0
+        contDelRowsAux = 0
         # Manejar eventos
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -180,9 +204,9 @@ def run_game(mode=0):
                     rotation_allowed = True  # permite rotar de nuevo
                 
         # Manejar teclas de movimiento hacia abajo
-        game.update()
-        game.handle_down_key_hold()
-        
+        contDelRows=game.update()
+        contDelRowsAux=handle_down_key_hold()
+        contDelRows += contDelRowsAux
         # Actualizar los visuales del juego
         ghost_piece=game.ghost_piece()
         aux_board = game.get_board_state()
@@ -193,11 +217,15 @@ def run_game(mode=0):
         graphics.draw_board_pieces(aux_board)
         graphics.draw_current_piece(game.current_piece)
         graphics.my_punctuation(game.score)
+        graphics.moving_animation(contDelRows)
         
         # === BLOQUE TOP 5 ===
         top_scores = connectorTxt.get_top_scores()
         graphics.show_top5(top_scores)
-        graphics.show_next_piece(game.next_pieces)
+
+        # === BLOQUE PIEZAS SIGUIENTES ===
+        shapes= [game.trim_shape(piece.get_current_shape()) for piece in game.next_pieces]
+        graphics.show_next_piece(game.next_pieces, shapes)
 
         # Actualizar la pantalla
         updateDisplay()

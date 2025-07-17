@@ -92,8 +92,9 @@ class TetrisGraphics:
         self.cell_size = cell_size
         self.board_width = cols * cell_size
         self.board_height = rows * cell_size
-        self.offset_x = (screen_width - self.board_width) // 2
+        self.offset_x = 20
         self.offset_y = (screen_height - self.board_height) // 2
+        
 
         # --PARTE DE LA IMAGEN--
         self.celebration_frames = [
@@ -102,6 +103,7 @@ class TetrisGraphics:
         self.celebration_index = 0
         self.show_celebration = False
         self.celebration_timer = 0
+        self.celebration_lines = 0
         self.celebration_duration = 1000  # duración en milisegundos
 
         
@@ -140,7 +142,17 @@ class TetrisGraphics:
                 (self.offset_x, self.offset_y + y * self.cell_size),
                 (self.offset_x + self.board_width, self.offset_y + y * self.cell_size)
             )
-
+    def to_screen_coords(self, x, y):
+        """
+        Funcionalidad: Convierte las coordenadas del tablero a coordenadas de pantalla.
+        Parámetros:
+            - x: Coordenada x en el tablero.
+            - y: Coordenada y en el tablero.
+        Retorna:
+            - Una tupla (screen_x, screen_y) con las coordenadas en la pantalla.
+        """
+        return self.offset_x + x * self.cell_size, self.offset_y + y * self.cell_size
+    
     def draw_ghost_piece(self, ghost_piece):
         """
         Funcionalidad: Dibuja la pieza fantasma en el tablero.
@@ -182,7 +194,7 @@ class TetrisGraphics:
             - None
         """
         # Pieza actual
-        shape = self.current_piece.get_current_shape()
+        shape = piece.get_current_shape()
         for i, row in enumerate(shape):
             for j, cell in enumerate(row):
                 if cell == '0':
@@ -190,7 +202,7 @@ class TetrisGraphics:
                     pygame.draw.rect(screen, piece.color, (x, y, self.cell_size, self.cell_size))
                     pygame.draw.rect(screen, (0, 0, 0), (x, y, self.cell_size, self.cell_size), 2)
 
-    def moving_animation(self):
+    def moving_animation(self, del_lines=0):
         """
         Funcionalidad: Muestra una animación de celebración al completar una línea.
         Parámetros:
@@ -222,6 +234,11 @@ class TetrisGraphics:
 
         # Animación
         current_time = pygame.time.get_ticks()
+        if del_lines > 0:
+                self.show_celebration = True
+                self.celebration_timer = pygame.time.get_ticks()
+                self.celebration_index = 0
+                self.celebration_lines = del_lines
         if self.show_celebration:
             frame_duration = 150
             total_frames = len(self.celebration_frames) * 2
@@ -230,6 +247,7 @@ class TetrisGraphics:
             if current_frame >= total_frames:
                 self.show_celebration = False
                 self.celebration_index = 0
+                self.celebration_lines = 0
             else:
                 self.celebration_index = current_frame % len(self.celebration_frames)
 
@@ -257,7 +275,7 @@ class TetrisGraphics:
         score_box_width = text_width + 2 * score_box_padding_x
         score_box_height = text_height + 2 * score_box_padding_y
 
-        score_box_x = self.screen_width - score_box_width - 20
+        score_box_x = screen_width - score_box_width - 20
         score_box_y = 60 + 120 + 20  
 
         score_box = pygame.Rect(score_box_x, score_box_y, score_box_width, score_box_height)
@@ -286,8 +304,8 @@ class TetrisGraphics:
         # Recuadro para el top 5
         top_box_width = 180
         top_box_height = (len(top_scores) + 1) * line_height + padding * 2
-        top_box_x = self.screen_width - top_box_width - 20
-        top_box_y = self.screen_height - top_box_height - 20
+        top_box_x = screen_width - top_box_width - 20
+        top_box_y = screen_height - top_box_height - 20
 
         top_box_rect = pygame.Rect(top_box_x, top_box_y, top_box_width, top_box_height)
         pygame.draw.rect(screen, (245, 245, 245), top_box_rect, border_radius=10)
@@ -313,7 +331,8 @@ class TetrisGraphics:
             for surf in parts:
                 screen.blit(surf, (x, y))
                 x += surf.get_width()
-    def show_next_piece(self, next_pieces):
+
+    def show_next_piece(self, next_pieces, shapes):
                 
         next_piece_box_width = 120
         next_piece_box_height = 100
@@ -325,8 +344,8 @@ class TetrisGraphics:
         label_text ="SIGUIENTES:"
         
         total_height = 2 * next_piece_box_height + gap_between_boxes + 30  # altura total con etiqueta
-        start_y = (self.screen_height - total_height) // 2
-        start_x = self.screen_width - next_piece_box_width - 60  # margen derecho
+        start_y = (screen_height - total_height) // 2
+        start_x = screen_width - next_piece_box_width - 60  # margen derecho
 
         rainbow_colors_next = GraphicsParty.get_animated_rainbow_colors(len(label_text))
         label_surfs = GraphicsParty.render_multicolor_text(label_text, font_next, rainbow_colors_next)
@@ -344,8 +363,7 @@ class TetrisGraphics:
                 break
 
             piece = next_pieces[i]
-            raw_shape = piece.get_current_shape()
-            shape = self.trim_shape(raw_shape)
+            shape = shapes[i]
 
             box_x = start_x + 20
             box_y = start_y + 40 + i * (next_piece_box_height + gap_between_boxes)
