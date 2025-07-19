@@ -3,10 +3,12 @@ import pygame
 import math
 import time
 
+
+pygame.init()
 # Pantalla 600x900
 screen_width = 600
 screen_height = 900
-# Crear pantalla
+
 screen = pygame.display.set_mode((screen_width, screen_height))
 # Establecer título de la ventana
 pygame.display.set_caption("Tetris")
@@ -481,4 +483,5 @@ def updateDisplay():
     pygame.display.flip()
 
 def getScreen():
+    # Crear pantalla
     return screen

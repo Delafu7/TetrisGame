@@ -1,5 +1,7 @@
 import random
 from Piece import Piece
+
+#Define la formas de las piezas y sus rotaciones
 TETROMINOS = {
     "S": [
         ['.....',
@@ -178,22 +180,21 @@ TETROMINOS = {
     ],
 }
 
-
-TETROMINO_COLORS = {
-    "S": (0, 255, 0),
-    "S_REV": (0, 200, 0),
-    "Z": (255, 0, 0),
-    "I": (0, 255, 255),
-    "O": (255, 255, 0),
-    "J": (0, 0, 255),
-    "L": (255, 165, 0),
-    "T": (128, 0, 128),
-}
 class BlockConstructor:
     def __init__(self):
+        """
+        tetrominos: contiene la forma de las piezas y sus rotaciones.
+        """
         self.tetrominos = TETROMINOS
 
     def getRandomBlock(self):
+        """
+            Funcionalidad: Genera un bloque aleatorio con un color aleatorio.
+            Parámetros:
+                - None
+            Retorna:
+                - Piece
+        """
         block_type = random.choice(list(self.tetrominos.keys()))
         rotations = self.tetrominos[block_type]
         color = (

@@ -5,10 +5,18 @@ from Graphics import updateDisplay
 from Graphics import getScreen
 from BaseGame import ConnectorTXT
 
+
+
+###--VARIABLES GLOBALES--###
+# Archivo de puntuaciones
 SCORES_FILE = "scores.txt"
+# Conexión a la base de datos de puntuaciones, en este caso un archivo de texto
 connectorTxt= ConnectorTXT(SCORES_FILE)
+# Crear la pantalla
 screen = getScreen()
-game = TetrisGame(screen) 
+# Crear una instancia del juego Tetris
+game = TetrisGame() 
+# Crear una instancia de la clase TetrisGraphics que controla la parte visual del juego
 graphics = TetrisGraphics(
             rows=game.rows,
             cols=game.cols,
@@ -18,8 +26,7 @@ def get_player_name():
     """
     Funcionalidad: Permite al jugador ingresar su nombre después de perder.
     Parámetros:
-        - screen: La pantalla donde se mostrará el input.
-        - font: Fuente para renderizar el texto.
+        - None
     Retorna:
         - name: El nombre ingresado por el jugador.
     """
@@ -62,9 +69,9 @@ def show_start_menu():
     """
         Funcionalidad: Muestra el menú de inicio del juego.
         Parámetros:
-            - screen: La pantalla donde se mostrará el menú.
+            - None
         Retorna:
-            - El modo seleccionado por el jugador.
+            - None
     """
     #FPS
     clock = pygame.time.Clock()
@@ -74,9 +81,9 @@ def show_start_menu():
     menu.start_menu_static()
     while True:
         
-        #--MOSTRAR MODOS DE JUEGO--#
+        #Mostrar el menú de inicio
         menu.show_modes()
-        #--MOSTRAR PUNTUACIONES--
+        #Mostrar Puntuaciones
         top_scores = connectorTxt.get_sorted_scores()
         menu.show_scores(top_scores)
         #Actualizar pantalla
@@ -105,14 +112,13 @@ def show_start_menu():
 
 def party():
     """    
-        Funcionalidad: Inicializa Pygame, muestra el menú de inicio y ejecuta el juego.
+        Funcionalidad: Mueestra el menú de inicio y ejecuta el juego.
         Parámetros:
-
+            - None
         Retorna:
             - None
     """
-    # Inicializar Pygame
-    pygame.init()
+   
 
     while True:
         selected_mode = show_start_menu()
@@ -158,9 +164,7 @@ def run_game(mode=0):
         Retorna:
             - None
     """
-    # Mostrar menú y obtener modo elegido
-    print(f"Modo seleccionado: {mode}")
-    
+    #Indicar el modo de juego  
     game.set_mode(mode)
    
 
@@ -219,11 +223,11 @@ def run_game(mode=0):
         graphics.my_punctuation(game.score)
         graphics.moving_animation(contDelRows)
         
-        # === BLOQUE TOP 5 ===
+        # Bloque top 5 scores
         top_scores = connectorTxt.get_top_scores()
         graphics.show_top5(top_scores)
 
-        # === BLOQUE PIEZAS SIGUIENTES ===
+        # Bloque piezas siguientes
         shapes= [game.trim_shape(piece.get_current_shape()) for piece in game.next_pieces]
         graphics.show_next_piece(game.next_pieces, shapes)
 

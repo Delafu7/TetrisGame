@@ -5,27 +5,45 @@ import os
 
 SCORES_FILE = "scores.txt"
 class TetrisGame:
-    def __init__(self,screen):
+    def __init__(self):
+        """
+            cell_size -> Es el tamaño que tendrá cada celda del tablero
+            cols -> El número de columnas del tablero
+            rows -> El número de filas del tablero
+            board -> Variable que contiene el tablero en cada celda se define el color negro (0, 0, 0)
+            down_key_held -> Parte de la funcionalidad de mantener presionada la tecla hacia abajo
+            down_key_start_time -> Tiempo de inicio de la tecla hacia abajo
+            down_key_last_scored -> Último tiempo en el que se sumó un punto
+            down_score_interval -> En cada intervalo de 50 ms sumamos 1 punto
+            fall_time-> Controla el tiempo de caida
+            score-> Es la puntuación de la partida
+            block_constructor -> Inicializa el constructor de bloques
+            
+
+        """
+
+        # Variables del tablero
         self.cell_size = 30
         self.cols = 10
         self.rows = 20
         self.board = [[(0, 0, 0)] * self.cols for _ in range(self.rows)]  # tablero de 20x10
-        self.block_constructor = BlockConstructor()
-        self.down_key_held = False # Parte de la funcionalidad de mantener presionada la tecla hacia abajo
-        self.down_key_start_time = 0 #Tiempo de inicio de la tecla hacia abajo
-        self.down_key_last_scored = 0 #Último tiempo en el que se sumó un punto
-        self.down_score_interval = 50  # Cada 50 ms sumamos 1 punto
+    
+
+        #Variables relacionadas con  el presionado del teclado
+        self.down_key_held = False
+        self.down_key_start_time= 0
+        self.down_key_last_scored = 0
+        self.down_score_interval = 50
+
+        # Variables de funcionalidad
         self.fall_time = 0
         self.score=0
-        
+
+        # Inicialización de piezas
+        self.block_constructor = BlockConstructor()
         self.spawn_piece()
 
-        self.board_width = self.cols * self.cell_size
-        self.board_height = self.rows * self.cell_size
-
-        self.screen_width, self.screen_height = screen.get_size()
-        self.offset_x = (self.screen_width - self.board_width) // 2  - 100
-        self.offset_y =(self.screen_height - self.board_height) // 2
+        
         
         
     
@@ -36,7 +54,7 @@ class TetrisGame:
         Parámetros:
             - mode: Modo de juego (0, 1 o 2).
         Retorna:
-            - None
+            - None 
         """
         if mode == 1:
             self.fall_speed = 500
@@ -162,7 +180,15 @@ class TetrisGame:
         return [row[:] for row in self.board]
     
     def ghost_piece(self):
-        # Posición fantasma
+        """
+        Funcionalidad: Copia la pieza actual y la lleva hasta la parte inferior del tablero.
+        Hasta lo máximo que pueda descender esa pieza  en el tablero.
+        Parámetros:
+            - None
+        Retorna:
+            - None
+        """
+        
         ghost_piece = self.current_piece.copy()
         while self.valid_move(ghost_piece.get_current_shape(),ghost_piece.x, ghost_piece.y + 1):
             ghost_piece.y += 1
@@ -174,11 +200,12 @@ class TetrisGame:
     
             
     def valid_move(self,shape,x, y):
-        """        Verifica si la pieza puede moverse a una nueva posición (x, y) en el tablero.
-        Args:
-            x (int): Nueva coordenada x.
-            y (int): Nueva coordenada y.
-        Returns:
+        """        
+        Funcionalidad: Verifica si la pieza puede moverse a una nueva posición (x, y) en el tablero.
+        Parametros:
+            - x (int): Nueva coordenada x.
+            - y (int): Nueva coordenada y.
+        Retorna:
             bool: True si el movimiento es válido, False en caso contrario.
         """
         for i, row in enumerate(shape):
@@ -199,7 +226,8 @@ class TetrisGame:
         Parámetros:
             - None 
         Retorna:
-            - None"""
+            - None
+        """
         if self.valid_move(self.current_piece.get_current_shape(),self.current_piece.x - 1, self.current_piece.y):
             self.current_piece.x -= 1
 
