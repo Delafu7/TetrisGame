@@ -16,6 +16,13 @@ pygame.display.set_caption("Tetris")
 class GraphicsParty:
     @staticmethod
     def get_player_name(name=""):
+        """
+        Funcionalidad: Muestra un input para que el jugador escriba su nombre.
+        Parámetros
+            - name: Nombre del jugador, por defecto es una cadena vacía.
+        Retorna:
+            - None
+        """
         #Tipo y tamaño de letra
         font = pygame.font.Font("other/PressStart2P.ttf", 16)
         # Tamaño del rectángulo del input
@@ -50,6 +57,14 @@ class GraphicsParty:
         updateDisplay()
 
     def put_music():
+
+        """Funcionalidad: Carga y reproduce música de fondo.
+        Parámetros:
+            - None
+        Retorna:
+            - None
+        """
+
         # Música de fondo
         try:
             pygame.mixer.init()
@@ -60,6 +75,14 @@ class GraphicsParty:
             print(f"Error al cargar música: {e}")
 
     def get_animated_rainbow_colors(length, speed=2.0):
+        """
+        Funcionalidad: Genera una lista de colores animados en un espectro arcoíris.
+        Parámetros:
+            - length: Número de colores a generar.
+            - speed: Velocidad de la animación, por defecto es 2.0.
+        Retorna:
+            - Una lista de tuplas RGB representando los colores animados.
+        """
         t = time.time() * speed
         colors = []
         for i in range(length):
@@ -208,7 +231,7 @@ class TetrisGraphics:
         """
         Funcionalidad: Muestra una animación de celebración al completar una línea.
         Parámetros:
-            - None
+            - del_lines: Número de líneas eliminadas, por defecto es 0.
         Retorna:
             - None
         """
@@ -258,6 +281,13 @@ class TetrisGraphics:
         screen.blit(scaled_frame, (frame_x, frame_y))
     
     def my_punctuation(self, score):
+        """
+        Funcionalidad: Muestra la puntuación del jugador en la pantalla.
+        Parámetros:
+            - score: Puntuación del jugador.
+        Retorna:
+            - None
+        """
         # === BLOQUE DE PUNTUACIÓN ===
         font_score = pygame.font.Font("other/PressStart2P.ttf", 14)
 
@@ -335,6 +365,14 @@ class TetrisGraphics:
                 x += surf.get_width()
 
     def show_next_piece(self, next_pieces, shapes):
+        """
+        Funcionalidad: Muestra las próximas piezas en la pantalla.
+        Parámetros:
+            - next_pieces: Lista de las próximas piezas.
+            - shapes: Lista de formas de las piezas.
+        Retorna:
+            - None
+        """
                 
         next_piece_box_width = 120
         next_piece_box_height = 100
@@ -387,6 +425,16 @@ class TetrisGraphics:
                         pygame.draw.rect(screen, (0, 0, 0), (rect_x, rect_y, block_size, block_size), 2)
 class InicialMenu:
     def __init__(self):
+        """
+        InicialMenu: Clase que maneja el menú inicial del juego.
+        Atributos:
+            - background: Fondo del menú.
+            - base_y: Posición base para dibujar los modos de juego.
+            - font: Fuente personalizada para los textos del menú.
+            - selected: Índice del modo de juego seleccionado.
+            - logo: Logo del juego.
+            - modes: Lista de modos de juego disponibles.
+        """
         self.background = None
         self.base_y = 0
         self.font = None
@@ -395,6 +443,13 @@ class InicialMenu:
         self.modes = ["Modo Clásico", "Modo Rápido", "Modo con Obstáculos"]
 
     def start_menu_static(self):
+        """
+        Funcionalidad: Inicializa el menúl, todo aquello que sea estático dentro del menú.
+        Parámetros:
+            - None
+        Retorna:
+            - None
+        """
         # Fondo
         background = pygame.image.load("imagens/tetris_background.jpg").convert()
         self.background = pygame.transform.scale(background, screen.get_size())
@@ -412,8 +467,15 @@ class InicialMenu:
 
         #Base para posicionar el contenido debajo del logo
         self.base_y = 50 + self.logo.get_height() + 50
-    def show_modes(self):
 
+    def show_modes(self):
+        """
+        Funcionalidad: Muestra los modos de juego disponibles en el menú.
+        Parámetros:
+            - None
+        Retorna:
+            - None
+        """
         # Dibujar fondo y logo
         screen.blit(self.background, (0, 0))
         screen.blit(self.logo, (screen.get_width() // 2 - self.logo.get_width() // 2, 50))
@@ -445,6 +507,13 @@ class InicialMenu:
             screen.blit(text, text_rect)
 
     def show_scores(self,top_scores):
+        """
+        Funcionalidad: Muestra las puntuaciones más altas en el menú.
+        Parámetros:
+            - top_scores: Lista de tuplas con los nombres y puntuaciones.
+        Retorna:
+            - None
+        """
          #--MOSTRAR PUNTUACIONES--
         score_font = pygame.font.Font("other/PressStart2P.ttf", 18)
 
@@ -477,11 +546,31 @@ class InicialMenu:
         
     
     def getModes(self):
+        """
+        Funcionalidad: Devuelve una lista que contiene los indices de los modos.
+        Parámetros:
+            - None
+        Retorna:
+            - None
+        """
         return [i for i in range(0,len(self.modes))]
 
 def updateDisplay():
+    """Funcionalidad: Actualiza la pantalla del juego.
+    Parámetros:
+        - None
+    Retorna:
+        - None
+    """
     pygame.display.flip()
 
 def getScreen():
+    """
+    Funcionalidad: Devuelve la pantalla del juego.
+    Parámetros:
+        - None
+    Retorna:
+        - screen: Pantalla del juego.
+    """
     # Crear pantalla
     return screen
