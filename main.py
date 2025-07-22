@@ -10,8 +10,10 @@ from BaseGame import ConnectorTXT
 ###--VARIABLES GLOBALES--###
 # Archivo de puntuaciones
 SCORES_FILE = "scores.txt"
+# Archivo de puntuaciones personales
+MY_SCORES_FILE = "myBestScore.txt"
 # Conexión a la base de datos de puntuaciones, en este caso un archivo de texto
-connectorTxt= ConnectorTXT(SCORES_FILE)
+connectorTxt= ConnectorTXT(SCORES_FILE, MY_SCORES_FILE)
 # Crear la pantalla
 screen = getScreen()
 # Crear una instancia del juego Tetris
@@ -87,7 +89,7 @@ def show_start_menu():
         top_scores = connectorTxt.get_sorted_scores()
         menu.show_scores(top_scores)
         #Actualizar pantalla
-
+        menu.show_myBestScore(connectorTxt.get_my_best_score())
         updateDisplay()
         # Dibujar el menú de selección de modo
         # Gestion de eventos
@@ -175,6 +177,7 @@ def run_game(mode=0):
     clock = pygame.time.Clock()
     running = True
     rotation_allowed = True
+    myBestScore = connectorTxt.get_my_best_score()
 
     # Permitir que la tecla de rotación se mantenga presionada
     # Esto permite que el jugador mantenga presionada la tecla de rotación para rotar la pieza continuamente
@@ -221,6 +224,7 @@ def run_game(mode=0):
         graphics.draw_board_pieces(aux_board)
         graphics.draw_current_piece(game.current_piece)
         graphics.my_punctuation(game.score)
+        graphics.show_my_best_score(myBestScore)
         graphics.moving_animation(contDelRows)
         
         # Bloque top 5 scores
@@ -241,6 +245,7 @@ def run_game(mode=0):
             if len(name)>0:
                 connectorTxt.save_score(name, game.score)
             running = False
+            connectorTxt.save_my_best_score(game.score)
         # Controlar FPS
         clock.tick(10)
 

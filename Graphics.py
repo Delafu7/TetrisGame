@@ -423,6 +423,43 @@ class TetrisGraphics:
                         rect_y = offset_y + row_idx * block_size
                         pygame.draw.rect(screen, piece.color, (rect_x, rect_y, block_size, block_size))
                         pygame.draw.rect(screen, (0, 0, 0), (rect_x, rect_y, block_size, block_size), 2)
+
+    def show_my_best_score(self, my_best_score):
+        """
+        Funcionalidad: Muestra la mejor puntuación del jugador en la pantalla.
+        Parámetros:
+            - my_best_score: La mejor puntuación del jugador.
+        Retorna:
+            - None
+        """
+        font_best = pygame.font.Font("other/PressStart2P.ttf", 10)
+        best_score_text = f"YOUR BEST: {my_best_score}"
+        rainbow_colors_best = GraphicsParty.get_animated_rainbow_colors(len(best_score_text))
+        best_score_parts = GraphicsParty.render_multicolor_text(best_score_text, font_best, rainbow_colors_best)
+
+        # Calcular tamaño total del texto
+        text_width = sum(surf.get_width() for surf in best_score_parts)
+        text_height = max(surf.get_height() for surf in best_score_parts)
+
+        # Recuadro
+        score_box_padding_x = 10
+        score_box_padding_y = 8
+        score_box_width = text_width + 2 * score_box_padding_x
+        score_box_height = text_height + 2 * score_box_padding_y
+
+        score_box_x = screen_width - score_box_width - 20
+        score_box_y = 130 + 120 + 20  
+
+        score_box = pygame.Rect(score_box_x, score_box_y, score_box_width, score_box_height)
+        pygame.draw.rect(screen, (255, 255, 255), score_box, border_radius=6)
+        pygame.draw.rect(screen, (0, 0, 0), score_box, 2, border_radius=6)
+
+        # Dibujar el texto multicolor centrado
+        start_x = score_box.centerx - (text_width // 2)
+        y = score_box.centery - (text_height // 2)
+        for surf in best_score_parts:
+            screen.blit(surf, (start_x, y))
+            start_x += surf.get_width()
 class InicialMenu:
     def __init__(self):
         """
@@ -505,6 +542,36 @@ class InicialMenu:
                 pygame.draw.rect(screen, (255, 255, 255), bg_rect, 2, border_radius=10)
 
             screen.blit(text, text_rect)
+    
+    def show_myBestScore(self, my_best_score):
+        """
+        Funcionalidad: Muestra la mejor puntuación del jugador en el menú.
+        Parámetros:
+            - my_best_score: La mejor puntuación del jugador.
+        Retorna:
+            - None
+        """
+        # Caja que contiene la mejor puntuación
+        box_width = 500
+        box_height = 40
+        score_box = pygame.Rect(
+            (screen.get_width() - box_width) // 2,
+            self.base_y + len(self.modes) * 70 + 10,
+            box_width,
+            box_height
+        )
+        score_surface = pygame.Surface((box_width, box_height), pygame.SRCALPHA)
+        score_surface.fill((0, 0, 0, 220))  # negro con 70% opacidad
+        screen.blit(score_surface, score_box.topleft)
+
+        # Mostrar mi mejor puntuación
+        font = pygame.font.Font("other/PressStart2P.ttf", 18)
+        score_text = f"Mi mejor puntuación: {my_best_score}"
+        text_surface = font.render(score_text, True, (255, 255, 255))
+        text_rect = text_surface.get_rect(center=(screen.get_width() // 2, self.base_y + len(self.modes) * 80 ))
+        screen.blit(text_surface, text_rect)
+        
+        
 
     def show_scores(self,top_scores):
         """
@@ -533,9 +600,11 @@ class InicialMenu:
         screen.blit(score_surface, score_box.topleft)
 
         #Dibujar titulo de las puntuaciones
-        score_title = score_font.render("TOP PUNTUACIONES", True, (255, 215, 0))
+        score_title = score_font.render("TOP PUNTUACIONES", True, (255, 255, 255))
         score_title_rect = score_title.get_rect(center=(screen.get_width() // 2, self.base_y + len(self.modes) * 100))
         screen.blit(score_title, score_title_rect)
+
+
 
         #Dibujar puntuaciones
         for i, (name, score) in enumerate(top_scores):

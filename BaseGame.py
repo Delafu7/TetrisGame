@@ -331,7 +331,7 @@ class TetrisGame:
 
 
 class ConnectorTXT:
-    def __init__(self, scores_file="scores.txt"):
+    def __init__(self, scores_file="scores.txt", myScores_file="myBestScore.txt"):
         """
         Funcionalidad: Inicializa la clase ConnectorTXT.
         Parámetros:
@@ -340,6 +340,7 @@ class ConnectorTXT:
             - None
         """
         self.scores_file = scores_file
+        self.myScores_file = myScores_file
     def load_scores(self):
         """ 
             Funcionalidad: Carga las puntuaciones desde el archivo SCORES_FILE.
@@ -356,19 +357,35 @@ class ConnectorTXT:
             lines = f.readlines()
             return [line.strip().split(",") for line in lines] 
         
-    def save_score(self,name, score):
+    def save_score(self, name, score):
         """
-            Funcionalidad: Guarda la puntuación del jugador en el archivo SCORES_FILE.
-            Parámetros:
-                - name: El nombre del jugador.
-                - score: La puntuación del jugador.
-            Retorna:
-                - None
+        Funcionalidad: Guarda la puntuación del jugador en el archivo SCORES_FILE.
+        Parámetros:
+            - name: El nombre del jugador.
+            - score: La puntuación del jugador.
+        Retorna:
+            - None
         """
-        with open(self.scores_file, "a") as f:
-            # Si no existe el archivo, se crea automáticamente
-            #TODO Comprobar que no se repita el nombre
-            f.write(f"{name},{score}\n")
+        scores = []
+        
+        if os.path.exists(self.scores_file):
+            with open(self.scores_file, "r") as f:
+                for line in f:
+                    parts = line.strip().split(",")
+                    if len(parts) == 2:
+                        n, s = parts
+                        scores.append((n, int(s)))
+
+        # Añadir la nueva puntuación
+        scores.append((name, score))
+
+        # Ordenar de mayor a menor
+        scores.sort(key=lambda x: x[1], reverse=True)
+
+        # Escribir al archivo
+        with open(self.scores_file, "w") as f:
+            for n, s in scores[:10]:
+                f.write(f"{n},{s}\n")
 
     def get_sorted_scores(self):
         """
@@ -396,3 +413,31 @@ class ConnectorTXT:
             return sorted(scores, key=lambda x: int(x.split(",")[1]), reverse=True)[:count]
         except FileNotFoundError:
             return []
+
+    def get_my_best_score(self):
+        """
+        Funcionalidad: Obtiene la mejor puntuación del jugador desde el archivo SCORES_FILE.
+        Parámetros:
+            - None
+        Retorna:
+            - La mejor puntuación del jugador o 0 si no hay puntuaciones.
+        """
+        try:
+            with open(self.myScores_file, "r") as f:
+                score = f.read().strip()
+                return int(score) if score else 0
+        except FileNotFoundError:
+            return 0
+        
+    def save_my_best_score(self, score):
+        """
+        Funcionalidad: Guarda la mejor puntuación del jugador en el archivo MY_SCORES_FILE.
+        Parámetros:
+            - score: La puntuación a guardar.
+        Retorna:
+            - None
+        """
+        with open(self.myScores_file, "w") as f:
+            if self.get_my_best_score() < score:
+                # Solo guardar si la nueva puntuación es mejor
+                f.write(f"{score}")
