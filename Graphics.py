@@ -9,7 +9,7 @@ pygame.init()
 screen_width = 600
 screen_height = 900
 
-screen = pygame.display.set_mode((screen_width, screen_height))
+screen = pygame.display.set_mode((screen_width, screen_height),pygame.SCALED|pygame.RESIZABLE)
 # Establecer título de la ventana
 pygame.display.set_caption("Tetris")
 
