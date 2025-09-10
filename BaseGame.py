@@ -260,6 +260,7 @@ class TetrisGame:
             self.board.insert(0, [(0, 0, 0)] * self.cols)  # Añadir una fila vacía al inicio del tablero
         return len(rows_to_delete)
     
+    
 
     def move_down(self):
         """Funcionalidad: Mueve la pieza actual hacia abajo.
@@ -328,7 +329,16 @@ class TetrisGame:
             - bool: True si el juego ha terminado, False en caso contrario.
         """
         return any(self.board[1][x] != (0, 0, 0) for x in range(10))
-
+    def reset(self):
+        """
+        Funcionalidad: Reinicia el estado del juego.
+        Parámetros:
+            - None
+        Retorna:
+            - None
+        """
+        self.board = [[(0, 0, 0)] * self.cols for _ in range(self.rows)]
+        self.score = 0
 
 class ConnectorTXT:
     def __init__(self, scores_file="scores.txt", myScores_file="myBestScore.txt"):
@@ -425,7 +435,8 @@ class ConnectorTXT:
         try:
             with open(self.myScores_file, "r") as f:
                 score = f.read().strip()
-                return int(score) if score else 0
+                self.bestScore=int(score) if score else 0
+                return self.bestScore
         except FileNotFoundError:
             return 0
         
@@ -437,7 +448,11 @@ class ConnectorTXT:
         Retorna:
             - None
         """
+        print(f"Guardando puntuación: {self.bestScore}")
         with open(self.myScores_file, "w") as f:
-            if self.get_my_best_score() < score:
+            if self.bestScore < score:
+                print(f"Nueva mejor puntuación: {self.get_my_best_score()} < {score}")
                 # Solo guardar si la nueva puntuación es mejor
                 f.write(f"{score}")
+            else:
+                f.write(f"{self.bestScore}")

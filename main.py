@@ -81,6 +81,7 @@ def show_start_menu():
     # Crear instancia de la clase InicialMenu
     menu = InicialMenu()
     menu.start_menu_static()
+    myBestScore = connectorTxt.get_my_best_score()
     while True:
         
         #Mostrar el menú de inicio
@@ -89,7 +90,7 @@ def show_start_menu():
         top_scores = connectorTxt.get_sorted_scores()
         menu.show_scores(top_scores)
         #Actualizar pantalla
-        menu.show_myBestScore(connectorTxt.get_my_best_score())
+        menu.show_myBestScore(myBestScore)
         updateDisplay()
         # Dibujar el menú de selección de modo
         # Gestion de eventos
@@ -246,6 +247,7 @@ def run_game(mode=0):
                 connectorTxt.save_score(name, game.score)
             running = False
             connectorTxt.save_my_best_score(game.score)
+            game.reset()
         # Controlar FPS
         clock.tick(10)
 
