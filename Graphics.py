@@ -321,6 +321,14 @@ class TetrisGraphics:
             screen.blit(surf, (start_x, y))
             start_x += surf.get_width()
 
+    def truncate_text(self,text, font, max_width):
+        """Recorta el texto si no cabe en max_width y añade '...'."""
+        if font.size(text)[0] <= max_width:
+            return text[:3]
+        while font.size(text + "...")[0] > max_width and len(text) > 0:
+            text = text[:-1]
+        return text + "..." 
+
     def show_top5(self, top_scores):
         """
         Funcionalidad: Muestra las 5 mejores puntuaciones en la pantalla.
@@ -330,36 +338,47 @@ class TetrisGraphics:
             - None
         """
         font_top = pygame.font.Font("other/PressStart2P.ttf", 12)
-        line_height = 20
-        padding = 10
+        line_height = 22
+        padding = 15
 
         # Recuadro para el top 5
-        top_box_width = 180
-        top_box_height = (len(top_scores) + 1) * line_height + padding * 2
-        top_box_x = screen_width - top_box_width - 20
-        top_box_y = screen_height - top_box_height - 20
+        top_box_width =230
+        top_box_height = (len(top_scores) + 2) * line_height + padding * 2
+        top_box_x = screen_width - top_box_width - 30
+        top_box_y = screen_height - top_box_height - 100
 
         top_box_rect = pygame.Rect(top_box_x, top_box_y, top_box_width, top_box_height)
-        pygame.draw.rect(screen, (245, 245, 245), top_box_rect, border_radius=10)
-        pygame.draw.rect(screen, (0, 0, 0), top_box_rect, 2, border_radius=10)
+        pygame.draw.rect(screen, (245, 245, 245), top_box_rect, border_radius=12)
+        pygame.draw.rect(screen, (0, 0, 0), top_box_rect, 3, border_radius=12)
 
-        # Dibujar título
+         # Dibujar título centrado
         title_string = "TOP 5"
         rainbow_colors_title = GraphicsParty.get_animated_rainbow_colors(len(title_string))
         title_surfs = GraphicsParty.render_multicolor_text(title_string, font_top, rainbow_colors_title)
-        tx = top_box_x + padding
+
+        # Calcular ancho total del título
+        title_width = sum(surf.get_width() for surf in title_surfs)
+        tx = top_box_x + (top_box_width - title_width) // 2
         ty = top_box_y + padding
         for surf in title_surfs:
             screen.blit(surf, (tx, ty))
             tx += surf.get_width()
 
-        # Dibujar las puntuaciones 
+        # Dibujar las puntuaciones alineadas a la derecha
         for i, score in enumerate(top_scores):
-            score_str = f"{i + 1}.- {score.split(',')[0]}: {score.split(',')[1]}"
+            name = score.split(',')[0]
+            points = score.split(',')[1]
+
+            # 🔹 ancho máximo disponible para el nombre
+            max_name_width = top_box_width - 80  
+            name = self.truncate_text(name, font_top, max_name_width)
+
+            score_str = f"{i + 1}.- {name}: {points}"
             colors_line = GraphicsParty.get_animated_rainbow_colors(len(score_str))
             parts = GraphicsParty.render_multicolor_text(score_str, font_top, colors_line)
+
             x = top_box_x + padding
-            y = top_box_y + padding + (i + 1) * line_height
+            y = top_box_y + padding + (i + 2) * line_height
             for surf in parts:
                 screen.blit(surf, (x, y))
                 x += surf.get_width()
@@ -610,7 +629,7 @@ class InicialMenu:
         for i, (name, score) in enumerate(top_scores):
             score_text = f"{i+1}. {name}: {score}"
             score_render = score_font.render(score_text, True, (255, 255, 255))
-            score_rect = score_render.get_rect(center=(screen.get_width() // 2, score_title_rect.bottom + 10 + i * 30))
+            score_rect = score_render.get_rect(center=(screen.get_width() // 2, score_title_rect.bottom + 30 + i * 30))
             screen.blit(score_render, score_rect)
         
     
