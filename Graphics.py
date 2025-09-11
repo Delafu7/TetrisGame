@@ -2,7 +2,8 @@
 import pygame
 import math
 import time
-
+import sys
+import os
 
 pygame.init()
 # Pantalla 600x900
@@ -24,7 +25,7 @@ class GraphicsParty:
             - None
         """
         #Tipo y tamaño de letra
-        font = pygame.font.Font("other/PressStart2P.ttf", 16)
+        font = pygame.font.Font(recurso_path("other/PressStart2P.ttf"), 16)
         # Tamaño del rectángulo del input
         box_width = 500
         box_height = 120
@@ -68,7 +69,7 @@ class GraphicsParty:
         # Música de fondo
         try:
             pygame.mixer.init()
-            pygame.mixer.music.load('other/Original_Tetris_theme.mp3')
+            pygame.mixer.music.load(recurso_path('other/Original_Tetris_theme.mp3'))
             pygame.mixer.music.set_volume(0.5)
             pygame.mixer.music.play(-1)  # Reproduce en bucle
         except Exception as e:
@@ -123,7 +124,7 @@ class TetrisGraphics:
 
         # --PARTE DE LA IMAGEN--
         self.celebration_frames = [
-            pygame.image.load(f"imagens/russianDancer/frame_{i}.gif").convert_alpha() for i in range(29)  # Cargar 29 frames de la animación
+            pygame.image.load(recurso_path(f"imagens/russianDancer/frame_{i}.gif")).convert_alpha() for i in range(29)  # Cargar 29 frames de la animación
         ]
         self.celebration_index = 0
         self.show_celebration = False
@@ -131,7 +132,7 @@ class TetrisGraphics:
         self.celebration_lines = 0
         self.celebration_duration = 1000  # duración en milisegundos
 
-        
+    
     def draw_board(self):
         """Funcionalidad: Dibuja el tablero de Tetris con una cuadrícula.
         Parámetros
@@ -289,7 +290,7 @@ class TetrisGraphics:
             - None
         """
         # === BLOQUE DE PUNTUACIÓN ===
-        font_score = pygame.font.Font("other/PressStart2P.ttf", 14)
+        font_score = pygame.font.Font(recurso_path("other/PressStart2P.ttf"), 14)
 
         # Crear texto multicolor
         padded_score = str(score).rjust(6, " ")
@@ -337,7 +338,7 @@ class TetrisGraphics:
         Retorna:
             - None
         """
-        font_top = pygame.font.Font("other/PressStart2P.ttf", 12)
+        font_top = pygame.font.Font(recurso_path("other/PressStart2P.ttf"), 12)
         line_height = 22
         padding = 15
 
@@ -399,7 +400,7 @@ class TetrisGraphics:
         gap_between_boxes = 30
         block_size = 20
 
-        font_next = pygame.font.Font("other/PressStart2P.ttf", 12)
+        font_next = pygame.font.Font(recurso_path("other/PressStart2P.ttf"), 12)
         label_text ="SIGUIENTES:"
         
         total_height = 2 * next_piece_box_height + gap_between_boxes + 30  # altura total con etiqueta
@@ -451,7 +452,7 @@ class TetrisGraphics:
         Retorna:
             - None
         """
-        font_best = pygame.font.Font("other/PressStart2P.ttf", 10)
+        font_best = pygame.font.Font(recurso_path("other/PressStart2P.ttf"), 10)
         best_score_text = f"YOUR BEST: {my_best_score}"
         rainbow_colors_best = GraphicsParty.get_animated_rainbow_colors(len(best_score_text))
         best_score_parts = GraphicsParty.render_multicolor_text(best_score_text, font_best, rainbow_colors_best)
@@ -507,18 +508,18 @@ class InicialMenu:
             - None
         """
         # Fondo
-        background = pygame.image.load("imagens/tetris_background.jpg").convert()
+        background = pygame.image.load(recurso_path("imagens/tetris_background.jpg")).convert()
         self.background = pygame.transform.scale(background, screen.get_size())
         
         # Logo
-        logo = pygame.image.load("imagens/tetris_logo.png").convert_alpha()
+        logo = pygame.image.load(recurso_path("imagens/tetris_logo.png")).convert_alpha()
         logo_width = 400
         logo_height = int(logo.get_height() * (logo_width / logo.get_width()))
         self.logo = pygame.transform.scale(logo, (logo_width, logo_height))
 
 
         # Fuente personalizada
-        self.font = pygame.font.Font("other/PressStart2P.ttf", 24)
+        self.font = pygame.font.Font(recurso_path("other/PressStart2P.ttf"), 24)
         screen.blit(logo, (screen.get_width() // 2 - logo.get_width() // 2, 50)) # Dibujar logo centrado
 
         #Base para posicionar el contenido debajo del logo
@@ -584,7 +585,7 @@ class InicialMenu:
         screen.blit(score_surface, score_box.topleft)
 
         # Mostrar mi mejor puntuación
-        font = pygame.font.Font("other/PressStart2P.ttf", 18)
+        font = pygame.font.Font(recurso_path("other/PressStart2P.ttf"), 18)
         score_text = f"Mi mejor puntuación: {my_best_score}"
         text_surface = font.render(score_text, True, (255, 255, 255))
         text_rect = text_surface.get_rect(center=(screen.get_width() // 2, self.base_y + len(self.modes) * 80 ))
@@ -601,7 +602,7 @@ class InicialMenu:
             - None
         """
          #--MOSTRAR PUNTUACIONES--
-        score_font = pygame.font.Font("other/PressStart2P.ttf", 18)
+        score_font = pygame.font.Font(recurso_path("other/PressStart2P.ttf"), 18)
 
         # Crea fondo para puntuaciones
         num_scores = len(top_scores)
@@ -662,3 +663,11 @@ def getScreen():
     """
     # Crear pantalla
     return screen
+
+def recurso_path(rel_path):
+        """Devuelve la ruta correcta tanto en modo normal como congelado (exe)."""
+        if hasattr(sys, '_MEIPASS'):
+            base_path = sys._MEIPASS  # carpeta temporal usada por PyInstaller
+        else:
+            base_path = os.path.abspath(".")
+        return os.path.join(base_path, rel_path)

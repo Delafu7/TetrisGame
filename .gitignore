@@ -4,3 +4,6 @@ scores.txt
 tempCodeRunnerFile.py3
 tempCodeRunnerFile.py
 myBestScore.txt
+build/
+dist/
+main.spec

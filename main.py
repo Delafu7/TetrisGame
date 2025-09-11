@@ -43,7 +43,7 @@ def get_player_name():
             if event.type == pygame.QUIT:
                 #Si el usuario cierra la ventana, salir del juego
                 pygame.quit()
-                exit()
+                sys.exit()
             elif event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_RETURN:
                     # Si el usuario presiona Enter, finalizar el input
@@ -99,7 +99,7 @@ def show_start_menu():
             if event.type == pygame.QUIT:
                 #Salida
                 pygame.quit()
-                exit()
+                sys.exit()
             elif event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_UP:
                     # Cambiar selección

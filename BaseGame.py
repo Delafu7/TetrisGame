@@ -38,6 +38,7 @@ class TetrisGame:
         # Variables de funcionalidad
         self.fall_time = 0
         self.score=0
+        self.bestScore=0
 
         # Inicialización de piezas
         self.block_constructor = BlockConstructor()
@@ -448,10 +449,8 @@ class ConnectorTXT:
         Retorna:
             - None
         """
-        print(f"Guardando puntuación: {self.bestScore}")
         with open(self.myScores_file, "w") as f:
             if self.bestScore < score:
-                print(f"Nueva mejor puntuación: {self.get_my_best_score()} < {score}")
                 # Solo guardar si la nueva puntuación es mejor
                 f.write(f"{score}")
             else:
