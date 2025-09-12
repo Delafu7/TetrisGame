@@ -10,7 +10,19 @@ pygame.init()
 screen_width = 600
 screen_height = 900
 
+def recurso_path(rel_path):
+    if hasattr(sys, '_MEIPASS'):
+        base_path = sys._MEIPASS
+    else:
+        base_path = os.path.abspath(".")
+    return os.path.join(base_path, rel_path)
 screen = pygame.display.set_mode((screen_width, screen_height),pygame.SCALED|pygame.RESIZABLE)
+# Cambiar el icono de la ventana
+icon = pygame.image.load(recurso_path("imagens/icon_tetris.png"))
+pygame.display.set_icon(icon)
+
+
+
 # Establecer título de la ventana
 pygame.display.set_caption("Tetris")
 
