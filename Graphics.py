@@ -18,7 +18,7 @@ def recurso_path(rel_path):
     return os.path.join(base_path, rel_path)
 screen = pygame.display.set_mode((screen_width, screen_height),pygame.SCALED|pygame.RESIZABLE)
 # Cambiar el icono de la ventana
-icon = pygame.image.load(recurso_path("imagens/icon_tetris.png"))
+icon = pygame.image.load(recurso_path("imagenes/icon_tetris.png"))
 pygame.display.set_icon(icon)
 
 
@@ -136,7 +136,7 @@ class TetrisGraphics:
 
         # --PARTE DE LA IMAGEN--
         self.celebration_frames = [
-            pygame.image.load(recurso_path(f"imagens/russianDancer/frame_{i}.gif")).convert_alpha() for i in range(29)  # Cargar 29 frames de la animación
+            pygame.image.load(recurso_path(f"imagenes/russianDancer/frame_{i}.gif")).convert_alpha() for i in range(29)  # Cargar 29 frames de la animación
         ]
         self.celebration_index = 0
         self.show_celebration = False
@@ -520,11 +520,11 @@ class InicialMenu:
             - None
         """
         # Fondo
-        background = pygame.image.load(recurso_path("imagens/tetris_background.jpg")).convert()
+        background = pygame.image.load(recurso_path("imagenes/tetris_background.jpg")).convert()
         self.background = pygame.transform.scale(background, screen.get_size())
         
         # Logo
-        logo = pygame.image.load(recurso_path("imagens/tetris_logo.png")).convert_alpha()
+        logo = pygame.image.load(recurso_path("imagenes/tetris_logo.png")).convert_alpha()
         logo_width = 400
         logo_height = int(logo.get_height() * (logo_width / logo.get_width()))
         self.logo = pygame.transform.scale(logo, (logo_width, logo_height))
