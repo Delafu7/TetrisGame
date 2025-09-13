@@ -77,7 +77,7 @@ Presiona **Enter** para confirmar.
 
 Primero descargar dependencias a traves de este comando:
 ```bash
-    pip freeze < requirements.txt
+    pip install -r requirements.txt
 ```
 Después ejecutar este comando para descargar el ejecutable .exe:
 ```bash
