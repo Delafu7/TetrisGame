@@ -72,3 +72,15 @@ Presiona **Enter** para confirmar.
 
 - Si no introduces ningún nombre o decides salir, no se guardará la puntuación y volverás al menú principal.
 - Es posible que existan varias puntuaciones almacenadas con el mismo nombre.
+
+## Comando para ejecutable
+
+Primero descargar dependencias a traves de este comando:
+```bash
+    pip freeze < requirements.txt
+```
+Después ejecutar este comando para descargar el ejecutable .exe:
+```bash
+    pyinstaller --onefile --windowed --icon=icon_tetris.ico --add-data "imagenes;imagenes" --add-data "other;other" main.py
+```
+ Este ejecutable se encuentra en la carpeta **dist**.
