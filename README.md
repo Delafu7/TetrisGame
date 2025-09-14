@@ -6,12 +6,60 @@ Este proyecto consiste en un Tetris desarrollado con la biblioteca de software l
 El juego cuenta con tres pantallas principales: **Inicio**, **Partida** y **Final**.
 
 ## 📑 Índice
-
+- [▶️ Ejecutar proyecto](#️-ejecutar-proyecto)
+- [⚙️ Crear el ejecutable (.exe)](#️-crear-el-ejecutable-exe)
 - [🚀 Pantalla de Inicio](#-pantalla-de-inicio)
 - [🎮 Pantalla de Juego](#-pantalla-de-juego)
 - [🏁 Pantalla Final](#-pantalla-final)
 
 ---
+
+## ▶️ Ejecutar proyecto
+
+Sigue estos pasos para ejecutar el proyecto desde la terminal:
+
+### 1. Instalar dependencias
+
+Ejecuta el siguiente comando para instalar todas las dependencias necesarias:
+
+```bash
+pip install -r requirements.txt
+```
+### 2. Ejecutar el proyecto
+
+Una vez instaladas las dependencias, ejecuta el archivo principal:
+
+```bash 
+python main.py
+```
+💡 En sistemas tipo Unix (Linux/Mac) también puedes usar:
+```bash 
+./main.py
+```
+Asegúrate de que el archivo tenga permisos de ejecución (chmod +x main.py).
+
+
+## ⚙️ Crear el ejecutable (.exe)
+
+Sigue estos pasos para generar un ejecutable de la aplicación:
+
+### 1. Instalar dependencias
+
+Instala las dependencias necesarias (si aún no lo hiciste):
+
+```bash
+pip install -r requirements.txt
+
+```
+### 2. Generar el ejecutable
+
+Usa **PyInstaller** para crear el archivo .exe:
+
+```bash
+    pyinstaller --onefile --windowed --icon=icon_tetris.ico --add-data "imagenes;imagenes" --add-data "other;other" main.py
+```
+📁 El ejecutable se generará automáticamente dentro de la carpeta dist/.
+
 ## 🚀 Pantalla de Inicio
 
 En la pantalla de **inicio** se muestran los modos de juego disponibles:
@@ -72,15 +120,3 @@ Presiona **Enter** para confirmar.
 
 - Si no introduces ningún nombre o decides salir, no se guardará la puntuación y volverás al menú principal.
 - Es posible que existan varias puntuaciones almacenadas con el mismo nombre.
-
-## Comando para ejecutable
-
-Primero descargar dependencias a traves de este comando:
-```bash
-    pip install -r requirements.txt
-```
-Después ejecutar este comando para descargar el ejecutable .exe:
-```bash
-    pyinstaller --onefile --windowed --icon=icon_tetris.ico --add-data "imagenes;imagenes" --add-data "other;other" main.py
-```
- Este ejecutable se encuentra en la carpeta **dist**.
