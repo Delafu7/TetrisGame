@@ -5,6 +5,8 @@ Este proyecto consiste en un Tetris desarrollado con la biblioteca de software l
 
 El juego cuenta con tres pantallas principales: **Inicio**, **Partida** y **Final**.
 
+![imagen inicio](documentary_imagenes/firstImage.jpg)
+
 ## 📑 Índice
 - [▶️ Ejecutar proyecto](#️-ejecutar-proyecto)
 - [⚙️ Crear el ejecutable (.exe)](#️-crear-el-ejecutable-exe)
